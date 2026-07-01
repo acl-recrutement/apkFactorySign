@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
+import 'package:pdf/widgets.dart' as pw;
 import '../config/config.dart';
 import '../model/responseModel.dart';
 import 'widgets/signature_painter.dart';
@@ -83,6 +84,105 @@ class _DedicatedSignaturePageState extends State<DedicatedSignaturePage> {
     final image = await boundary.toImage(pixelRatio: 3.0);
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     return byteData?.buffer.asUint8List();
+  }
+
+  // ─────── 📄 GÉNÉRATION PDF CONTRAT + SIGNATURE ───────
+  Future<Uint8List> _generateContractPdf(Uint8List signatureBytes) async {
+    final pdf = pw.Document();
+    final data = widget.requisitionData;
+    final employeeName = '${data['prenom']} ${data['nom']}'.trim();
+    final contractType = data['type'] ?? 'CDI';
+    final salaire = data['salaire'] ?? '–';
+    final site = data['site'] ?? '–';
+
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Center(
+              child: pw.Text(
+                'AQUARELLE MADAGASCAR',
+                style: pw.TextStyle(
+                  fontSize: 18,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+            ),
+            pw.SizedBox(height: 10),
+            pw.Center(
+              child: pw.Text(
+                'Contrat de Travail — $contractType',
+                style: pw.TextStyle(
+                  fontSize: 16,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+            ),
+            pw.Divider(),
+            pw.Text('Employé : $employeeName'),
+            pw.Text('Matricule : ${data['matricule']}'),
+            pw.Text('CIN : ${data['cin']}'),
+            pw.Text('Date de naissance : ${data['naissance']}'),
+            pw.Text('Adresse : ${data['Adresse']}'),
+            pw.Text('Fonction : ${data['Fonction']}'),
+            pw.Text('Département : ${data['Département']}'),
+            pw.Text('Site : $site'),
+            pw.Text('Salaire mensuel brut : $salaire Ariary'),
+            pw.SizedBox(height: 20),
+            pw.Text(
+              'CLAUSES CONTRACTUELLES',
+              style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+            ),
+            pw.SizedBox(height: 12),
+            pw.Text(
+              "Article 1 — Objet\nLe présent contrat est conclu pour une durée indéterminée.",
+            ),
+            pw.SizedBox(height: 8),
+            pw.Text(
+              "Article 2 — Période d'essai\nUne période d'essai de 1 mois est prévue, renouvelable une fois. Elle peut être rompue sans indemnité avec un préavis de 48 heures.",
+            ),
+            pw.SizedBox(height: 8),
+            pw.Text(
+              "Article 3 — Lieu de travail\nLe salarié exercera ses fonctions à $site, avec possibilité d'affectation selon les besoins de l'entreprise.",
+            ),
+            pw.SizedBox(height: 8),
+            pw.Text(
+              "Article 4 — Durée du travail\nLa durée de travail est fixée à 40 heures par semaine.",
+            ),
+            pw.SizedBox(height: 8),
+            pw.Text(
+              "Article 5 — Rémunération\nLe salarié percevra un salaire mensuel brut de $salaire Ariary.",
+            ),
+            pw.SizedBox(height: 8),
+            pw.Text(
+              "Article 6 — Congés\nLe salarié bénéficie de congés payés conformément à la législation en vigueur.",
+            ),
+            pw.SizedBox(height: 8),
+            pw.Text(
+              "Article 7 — Rupture\nLe contrat peut être rompu par l'une ou l'autre des parties dans le respect du préavis.",
+            ),
+            pw.SizedBox(height: 8),
+            pw.Text(
+              "Article 8 — Règlement intérieur\nLe salarié s'engage à respecter le règlement intérieur de l'entreprise.",
+            ),
+            pw.SizedBox(height: 8),
+            pw.Text(
+              "Article 9 — Litiges\nTout litige relatif à l'exécution du présent contrat sera réglé conformément aux lois en vigueur à Madagascar.",
+            ),
+            pw.SizedBox(height: 20),
+            pw.Text(
+              'SIGNATURE',
+              style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+            ),
+            pw.SizedBox(height: 8),
+            pw.Image(pw.MemoryImage(signatureBytes), width: 200, height: 100),
+          ],
+        ),
+      ),
+    );
+
+    return pdf.save();
   }
 
   // ─────── 🔑 SOUMISSION API CORRIGÉE ───────
@@ -172,7 +272,7 @@ class _DedicatedSignaturePageState extends State<DedicatedSignaturePage> {
         throw Exception('Échec mise à jour DB: $error');
       }
 
-      // 6️⃣ ✅ Succès : feedback utilisateur + navigation
+      // 6️⃣ ✅ Succès signature image + DB
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -182,6 +282,45 @@ class _DedicatedSignaturePageState extends State<DedicatedSignaturePage> {
         ),
       );
 
+      // 7️⃣ Si rôle RHO : Générer PDF et envoyer au backend
+      if (!isRH) {
+        try {
+          final pdfBytes = await _generateContractPdf(bytes);
+          final pdfUploadUrl = Uri.parse(
+            '${apiConfig.baseUrl}/api/contract/upload/pdf/signed/$idContract',
+          );
+          final pdfRequest = http.MultipartRequest('POST', pdfUploadUrl);
+          pdfRequest.files.add(
+            http.MultipartFile.fromBytes(
+              'file',
+              pdfBytes,
+              filename: 'contrat_signature_$idContract.pdf',
+              contentType: MediaType('application', 'pdf'),
+            ),
+          );
+
+          final pdfResponse = await http.Response.fromStream(
+            await pdfRequest.send(),
+          );
+
+          if (pdfResponse.statusCode != 200) {
+            final error =
+                jsonDecode(pdfResponse.body)['error'] ?? 'Erreur inconnue';
+            throw Exception('Échec upload PDF: $error');
+          }
+        } catch (e) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('⚠️ Erreur envoi PDF: ${e.toString()}'),
+              backgroundColor: Colors.orange,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+
+      // 8️⃣ Navigation finale
       Navigator.pushReplacement(
         context, // ✅ 1er argument : le BuildContext actuel
         MaterialPageRoute(

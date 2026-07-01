@@ -111,14 +111,13 @@ class _SignatureDetailPageState extends State<SignatureDetailPage> {
     } catch (_) {
       // ✅ CORRECTION 1: Utiliser {} au lieu de =>
       // ✅ CORRECTION 2: Retourner un String non-nullable avec ?? '–'
-      return dateStr ?? '–';
+      return dateStr;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final data = widget.requisitionData;
-    final isRH = widget.responseModel.role == 'RH';
     final canSign = _isSigned == false; // Empêcher de re-signer si déjà fait
 
     return Scaffold(

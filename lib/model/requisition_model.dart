@@ -44,7 +44,7 @@ class RequisitionModel {
       division: json['division']?.toString() ?? '',
       idRequisition: json['idRequisition'] ?? 0,
       nombre: json['nombre'],
-      position: json['position']?.toString()?.trim() ?? '',
+      position: json['position']?.toString().trim() ?? '',
       raison: json['raison']?.toString() ?? '',
       section: json['section']?.toString() ?? '',
       signfm: json['signfm']?.toString(),

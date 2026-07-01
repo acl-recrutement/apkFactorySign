@@ -26,7 +26,7 @@ class _ContractPageState extends State<ContractPage> {
   void _load() {
     _future = ContractService.getUnsignedContracts(
       idUser: widget.responseModel.id,
-      site: widget.responseModel.site ?? 'Tana',
+      site: widget.responseModel.site,
     );
   }
 
@@ -85,7 +85,6 @@ class _ContractPageState extends State<ContractPage> {
               final pers = item.personnel;
               final contract = item.contract;
               final infoFact = item.infoFactory;
-              final dossier = item.dossier;
               // ✅ CORRECTION : matricule vient de contract, PAS de personnel
               final matricule = contract?.matricule ?? 'N/A';
               if (widget.responseModel.role == 'RHO' &&

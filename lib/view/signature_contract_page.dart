@@ -31,8 +31,8 @@ class _SignatureContractPageState extends State<SignatureContractPage> {
       return fullName.isEmpty ? 'Employé' : fullName;
     } else {
       // RH signe pour lui-même → afficher le nom de l'utilisateur connecté
-      final nom = widget.responseModel.nom ?? '';
-      final prenom = widget.responseModel.prenom ?? '';
+      final nom = widget.responseModel.nom;
+      final prenom = widget.responseModel.prenom;
       final fullName = '$prenom $nom'.trim();
       return fullName.isEmpty ? 'Responsable RH' : fullName;
     }

@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 class Usermodel {
   final String mail;
   final String password;
