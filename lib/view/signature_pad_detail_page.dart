@@ -149,8 +149,9 @@ class _SignaturePadDetailPageState extends State<SignaturePadDetailPage> {
         }),
       );
 
-      if (dbResponse.statusCode != 201) {
-        final error = jsonDecode(dbResponse.body)['error'] ?? 'Erreur DB';
+      if (dbResponse.statusCode != 200) {
+        final body = jsonDecode(dbResponse.body);
+        final error = body is Map ? (body['error'] ?? 'Erreur DB') : 'Erreur DB';
         throw Exception('Échec mise à jour DB: $error');
       }
 

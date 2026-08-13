@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:myapp/model/responseModel.dart';
 import 'package:myapp/view/ContractDetailsPage.dart';
-import '../config/config.dart';
 import 'contractPage.dart';
 import 'DedicatedSignaturePage.dart'; // ✅ Nouvelle page dédiée
 

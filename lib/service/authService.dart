@@ -12,13 +12,16 @@ class Authservice {
       headers: apiConfig.defaultHeader,
       body: jsonEncode(user.toJson()),
     );
-    if (response.statusCode == 201) {
-      return ResponseModel.fromJson(jsonDecode(response.body));
+    if (response.statusCode == 200) {
+      final body = jsonDecode(response.body);
+      return ResponseModel.fromJson(body);
     } else {
       print("STATUS: ${response.statusCode}");
       print("BODY: '${response.body}'");
 
       if (response.statusCode == 401) {
+        return ResponseModel.error();
+      } else if (response.statusCode >= 400 && response.statusCode < 500) {
         return ResponseModel.error();
       } else {
         throw Exception('Une erreur se produit : ${response.statusCode}');

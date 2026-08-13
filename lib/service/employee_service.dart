@@ -1,11 +1,12 @@
 // lib/service/employee_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../config/config.dart';
 import '../model/employee.dart';
 
 class EmployeeService {
   static const String _endpoint =
-      'http://192.168.137.1:5000/api/perssonel/get/all';
+      '${apiConfig.baseUrl}/api/perssonel/get/all';
 
   static Future<List<Employee>> getEmployees() async {
     print('📡 Appel : $_endpoint');

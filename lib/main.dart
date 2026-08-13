@@ -69,36 +69,49 @@ class _LoginPageState extends State<LoginPage>
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      // Simulation d'une connexion
-      await Future.delayed(const Duration(seconds: 2));
-      String email = _emailController.text.trim();
-      String password = _passwordController.text.trim();
-      final authController = Authcontroller();
-      final userModel = Usermodel(mail: email, password: password);
-      final resposne = await authController.LoginUser(userModel);
-      if (resposne.result == true) {
-        setState(() => _isLoading = false);
+      try {
+        String email = _emailController.text.trim();
+        String password = _passwordController.text.trim();
+        final authController = Authcontroller();
+        final userModel = Usermodel(mail: email, password: password);
+        final resposne = await authController.LoginUser(userModel);
+        if (resposne.result == true) {
+          setState(() => _isLoading = false);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Connexion réussie !'),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Connexion réussie !'),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
-          ),
-        );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => Homepage(responseModel: resposne),
-          ),
-        );
-      } else {
+          );
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => Homepage(responseModel: resposne),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('mail ou mot de passe incorect !'),
+              backgroundColor: const Color.fromARGB(255, 238, 30, 30),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+          setState(() => _isLoading = false);
+        }
+      } catch (e) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('mail ou mot de passe incorect !'),
+            content: Text('Erreur de connexion: $e'),
             backgroundColor: const Color.fromARGB(255, 238, 30, 30),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -106,7 +119,6 @@ class _LoginPageState extends State<LoginPage>
             ),
           ),
         );
-        setState(() => _isLoading = false);
       }
     }
   }
@@ -145,17 +157,14 @@ class _LoginPageState extends State<LoginPage>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Logo/Icône
+                          // Logo
                           Container(
                             padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF6366F1).withOpacity(0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.business_center,
-                              size: 48,
-                              color: Color(0xFF6366F1),
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.contain,
                             ),
                           ),
                           const SizedBox(height: 24),

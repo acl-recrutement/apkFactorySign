@@ -5,6 +5,7 @@ import 'package:myapp/model/requisition_model.dart';
 import 'package:myapp/model/responseModel.dart';
 import 'signature_pad_detail_page.dart'; // ✅ Import de la page signature dédiée
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:myapp/config/config.dart';
 
 class SignatureDetailPage extends StatefulWidget {
   final ResponseModel responseModel;
@@ -32,7 +33,7 @@ class _SignatureDetailPageState extends State<SignatureDetailPage> {
 
   void _initSocket() {
     socket = IO.io(
-      'http://192.168.137.1:5000',
+      apiConfig.baseUrl,
       IO.OptionBuilder()
           .setTransports(['websocket'])
           .disableAutoConnect()

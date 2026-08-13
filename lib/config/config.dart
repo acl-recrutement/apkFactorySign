@@ -1,5 +1,5 @@
 class apiConfig {
-  static const String baseUrl = 'http://192.168.137.1:5000';
+  static const String baseUrl = 'https://backgrill.vercel.app';
   static Map<String, String> get defaultHeader => {
     'Content-Type': 'application/json',
   };

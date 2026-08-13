@@ -5,6 +5,7 @@ import 'package:myapp/view/employeePage.dart';
 import 'package:myapp/view/signaturePage.dart';
 import 'dart:math' as math; // 🔑 indispensable pour sin/cos/pi
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:myapp/config/config.dart';
 import '../model/responseModel.dart';
 
 // Helper optionnel (mais propre) pour lisibilité
@@ -50,7 +51,7 @@ class HomePageState extends State<Homepage> with TickerProviderStateMixin {
 
   final socket = IO
       .io(
-        'http://192.168.137.1:5000',
+        apiConfig.baseUrl,
         IO.OptionBuilder()
             .setTransports(['websocket'])
             .disableAutoConnect()
