@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:myapp/model/responseModel.dart';
 import 'package:myapp/view/ContractDetailsPage.dart';
 import 'contractPage.dart';
-import 'DedicatedSignaturePage.dart'; // ✅ Nouvelle page dédiée
+import 'DedicatedSignaturePage.dart';
 
 class SignatureContractPage extends StatefulWidget {
   final ResponseModel responseModel;
@@ -20,16 +20,13 @@ class SignatureContractPage extends StatefulWidget {
 }
 
 class _SignatureContractPageState extends State<SignatureContractPage> {
-  // ─────── Logique dynamique du nom du signataire ───────
   String get _signerName {
     if (widget.responseModel.role == 'RHO') {
-      // RHO signe pour l'employé → afficher le nom de l'employé
       final nom = widget.requisitionData['nom'] ?? '';
       final prenom = widget.requisitionData['prenom'] ?? '';
       final fullName = '$prenom $nom'.trim();
       return fullName.isEmpty ? 'Employé' : fullName;
     } else {
-      // RH signe pour lui-même → afficher le nom de l'utilisateur connecté
       final nom = widget.responseModel.nom;
       final prenom = widget.responseModel.prenom;
       final fullName = '$prenom $nom'.trim();
@@ -43,15 +40,16 @@ class _SignatureContractPageState extends State<SignatureContractPage> {
 
   Color get _signerAvatarColor {
     return widget.responseModel.role == 'RHO'
-        ? Colors.green.shade100
-        : Colors.blue.shade100;
+        ? const Color(0xFFE8F5E9)
+        : const Color(0xFFE3F2FD);
   }
 
   Color get _signerTextColor {
-    return widget.responseModel.role == 'RHO' ? Colors.green : Colors.blue;
+    return widget.responseModel.role == 'RHO'
+        ? const Color(0xFF2E7D32)
+        : const Color(0xFF1565C0);
   }
 
-  // ─────── Navigation vers la page de signature dédiée ───────
   Future<void> _navigateToSignature() async {
     final result = await Navigator.push<bool>(
       context,
@@ -60,12 +58,11 @@ class _SignatureContractPageState extends State<SignatureContractPage> {
           responseModel: widget.responseModel,
           requisitionData: widget.requisitionData,
           signerName: _signerName,
-          signerRole: widget.responseModel.role, // 'RHO' ou 'RH'
+          signerRole: widget.responseModel.role,
         ),
       ),
     );
 
-    // Si signature réussie, retour direct à la liste des contrats
     if (result == true && mounted) {
       Navigator.pushReplacement(
         context,
@@ -91,7 +88,6 @@ class _SignatureContractPageState extends State<SignatureContractPage> {
 
   @override
   Widget build(BuildContext context) {
-    // 📋 Extraction des données du contrat
     final idContract = widget.requisitionData['idRequisition'] ?? '–';
     final matricule = widget.requisitionData['matricule']?.toString() ?? '–';
     final contractType = widget.requisitionData['type'] ?? 'CDI';
@@ -103,38 +99,74 @@ class _SignatureContractPageState extends State<SignatureContractPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Signature du contrat'),
-        backgroundColor: Colors.blue.shade700,
+        titleSpacing: 0,
+        title: Row(
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.asset(
+                  'assets/icon/logo.jpg',
+                  fit: BoxFit.contain,
+                  width: 24,
+                  height: 24,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(
+                      Icons.business,
+                      size: 18,
+                      color: Colors.white,
+                    );
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Signature du contrat',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+            ),
+          ],
+        ),
+        backgroundColor: const Color(0xFF1565C0),
         elevation: 0,
+        surfaceTintColor: const Color(0xFF1565C0),
         centerTitle: true,
+        foregroundColor: Colors.white,
       ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            // 🏷️ CARTE D'INFORMATIONS DU CONTRAT
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Colors.blue.shade50, Colors.white],
+                  colors: [const Color(0xFFE3F2FD), Colors.white],
                 ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.blue.shade200, width: 1.5),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: const Color(0xFF1565C0).withOpacity(0.15),
+                  width: 1.5,
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.blue.withOpacity(0.08),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
+                    color: const Color(0xFF1565C0).withOpacity(0.06),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // En-tête : Numéro de contrat + Type
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -142,60 +174,57 @@ class _SignatureContractPageState extends State<SignatureContractPage> {
                         child: Text(
                           'Contrat n°$idContract',
                           style: const TextStyle(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                             fontSize: 17,
-                            color: Colors.blueGrey,
+                            color: Color(0xFF37474F),
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
+                          horizontal: 14,
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.blue.shade100,
-                          borderRadius: BorderRadius.circular(10),
+                          color: const Color(0xFF1565C0).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           contractType,
-                          style: TextStyle(
-                            color: Colors.blue.shade800,
+                          style: const TextStyle(
+                            color: Color(0xFF1565C0),
                             fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
                     ],
                   ),
-
-                  const Divider(height: 24, thickness: 1),
-
-                  // 👤 Informations de l'employé
-                  const Text(
+                  const Divider(height: 24, thickness: 1, color: Color(0xFFE0E0E0)),
+                  Text(
                     '📄 Employé concerné',
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey,
+                      color: const Color(0xFF757575),
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.3,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   Row(
                     children: [
                       CircleAvatar(
-                        radius: 22,
-                        backgroundColor: Colors.blue.shade100,
+                        radius: 24,
+                        backgroundColor: const Color(0xFFE3F2FD),
                         child: Text(
                           employeeName.isNotEmpty
                               ? employeeName[0].toUpperCase()
                               : '?',
                           style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
-                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF1565C0),
+                            fontSize: 18,
                           ),
                         ),
                       ),
@@ -209,13 +238,14 @@ class _SignatureContractPageState extends State<SignatureContractPage> {
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 15,
+                                color: Color(0xFF1A1A2E),
                               ),
                             ),
                             const SizedBox(height: 3),
                             Text(
                               'Matricule : $matricule',
-                              style: TextStyle(
-                                color: Colors.grey.shade600,
+                              style: const TextStyle(
+                                color: Color(0xFF757575),
                                 fontSize: 13,
                               ),
                             ),
@@ -224,33 +254,30 @@ class _SignatureContractPageState extends State<SignatureContractPage> {
                       ),
                     ],
                   ),
-
-                  const Divider(height: 24, thickness: 1),
-
-                  // ✍️ Informations du signataire actuel
+                  const Divider(height: 24, thickness: 1, color: Color(0xFFE0E0E0)),
                   Text(
                     '✍️ Signataire : $_signerRoleLabel',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey,
+                      color: const Color(0xFF757575),
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.3,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   Row(
                     children: [
                       CircleAvatar(
-                        radius: 22,
+                        radius: 24,
                         backgroundColor: _signerAvatarColor,
                         child: Text(
                           _signerName.isNotEmpty
                               ? _signerName[0].toUpperCase()
                               : '?',
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                             color: _signerTextColor,
-                            fontSize: 16,
+                            fontSize: 18,
                           ),
                         ),
                       ),
@@ -264,6 +291,7 @@ class _SignatureContractPageState extends State<SignatureContractPage> {
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 15,
+                                color: Color(0xFF1A1A2E),
                               ),
                             ),
                             const SizedBox(height: 3),
@@ -271,8 +299,8 @@ class _SignatureContractPageState extends State<SignatureContractPage> {
                               widget.responseModel.role == 'RHO'
                                   ? 'Signe au nom de l\'employé'
                                   : 'Signe en tant que RH',
-                              style: TextStyle(
-                                color: Colors.grey.shade600,
+                              style: const TextStyle(
+                                color: Color(0xFF757575),
                                 fontSize: 12,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -282,28 +310,27 @@ class _SignatureContractPageState extends State<SignatureContractPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 18),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: _navigateToContractDetails,
-                      icon: const Icon(Icons.rule, size: 22),
+                      icon: const Icon(Icons.rule_rounded, size: 22),
                       label: const Text(
                         'Voir les détails du contrat',
                         style: TextStyle(
-                          fontSize: 17,
+                          fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 7, 245, 7),
+                        backgroundColor: const Color(0xFF66BB6A),
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(14),
                         ),
-                        elevation: 4,
-                        shadowColor: Colors.blue.withOpacity(0.4),
+                        elevation: 2,
                       ),
                     ),
                   ),
@@ -311,50 +338,46 @@ class _SignatureContractPageState extends State<SignatureContractPage> {
               ),
             ),
 
-            const SizedBox(height: 40),
+            const SizedBox(height: 36),
 
-            // 🎯 BOUTON "SIGNER" → Page dédiée performante
             Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Bouton principal
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: _navigateToSignature,
-                      icon: const Icon(Icons.edit, size: 22),
+                      icon: const Icon(Icons.edit_rounded, size: 22),
                       label: const Text(
                         '✍️ Signer le contrat',
                         style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue.shade700,
+                        backgroundColor: const Color(0xFF1565C0),
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                         elevation: 4,
-                        shadowColor: Colors.blue.withOpacity(0.4),
                       ),
                     ),
                   ),
 
                   const SizedBox(height: 14),
 
-                  // Texte d'aide
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
-                      vertical: 10,
+                      vertical: 12,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(10),
+                      color: const Color(0xFFF5F7FA),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -362,14 +385,14 @@ class _SignatureContractPageState extends State<SignatureContractPage> {
                         Icon(
                           Icons.touch_app_outlined,
                           size: 18,
-                          color: Colors.grey.shade700,
+                          color: const Color(0xFF757575),
                         ),
                         const SizedBox(width: 8),
                         Flexible(
                           child: Text(
                             'Appuyez pour ouvrir la zone de signature optimisée',
                             style: TextStyle(
-                              color: Colors.grey.shade700,
+                              color: const Color(0xFF757575),
                               fontSize: 12,
                               fontStyle: FontStyle.italic,
                             ),
@@ -385,19 +408,18 @@ class _SignatureContractPageState extends State<SignatureContractPage> {
 
             const SizedBox(height: 20),
 
-            // ℹ️ Note informative
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.amber.shade50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.amber.shade200),
+                color: const Color(0xFFFFF8E1),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFFFE082)),
               ),
               child: Row(
                 children: [
                   Icon(
-                    Icons.info_outline,
-                    color: Colors.amber.shade800,
+                    Icons.info_outline_rounded,
+                    color: const Color(0xFFF9A825),
                     size: 20,
                   ),
                   const SizedBox(width: 10),
@@ -405,7 +427,7 @@ class _SignatureContractPageState extends State<SignatureContractPage> {
                     child: Text(
                       'La signature est sécurisée et horodatée. Une fois validée, elle ne peut plus être modifiée.',
                       style: TextStyle(
-                        color: Colors.amber.shade900,
+                        color: const Color(0xFFF57F17),
                         fontSize: 12,
                         height: 1.4,
                       ),

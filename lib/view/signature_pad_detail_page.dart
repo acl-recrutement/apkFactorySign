@@ -9,7 +9,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:myapp/config/config.dart';
 import 'package:myapp/model/requisition_model.dart';
 import 'package:myapp/model/responseModel.dart';
-import 'widgets/stroke_point.dart'; // ✅ Même widget partagé
+import 'widgets/stroke_point.dart';
 import 'signaturePage.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
@@ -17,7 +17,7 @@ class SignaturePadDetailPage extends StatefulWidget {
   final ResponseModel responseModel;
   final RequisitionModel requisitionData;
   final String signerName;
-  final String signerRole; // 'HOD', 'RH', 'FM', ou 'IE'
+  final String signerRole;
 
   const SignaturePadDetailPage({
     Key? key,
@@ -37,7 +37,6 @@ class _SignaturePadDetailPageState extends State<SignaturePadDetailPage> {
   final List<StrokePoint> _currentStroke = [];
   bool _isSubmitting = false;
 
-  // ─────── Gestion tactile & stylet (identique à l'original) ───────
   void _onPointerDown(PointerDownEvent event) {
     final box = _painterKey.currentContext?.findRenderObject() as RenderBox?;
     if (box == null) return;
@@ -71,7 +70,6 @@ class _SignaturePadDetailPageState extends State<SignaturePadDetailPage> {
     _currentStroke.clear();
   });
 
-  // ─────── Capture PNG haute qualité ───────
   Future<Uint8List?> _captureSignature() async {
     final boundary =
         _painterKey.currentContext?.findRenderObject()
@@ -86,13 +84,13 @@ class _SignaturePadDetailPageState extends State<SignaturePadDetailPage> {
     apiConfig.baseUrl,
     IO.OptionBuilder().setTransports(['websocket']).enableAutoConnect().build(),
   );
-  // ─────── 🎯 NOUVELLE LOGIQUE D'ENVOI (adaptée à tes endpoints) ───────
+
   Future<void> _submitSignature() async {
     if (_strokes.isEmpty && _currentStroke.length < 3) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('⚠️ Veuillez signer avant de valider'),
-          backgroundColor: Colors.orange,
+          backgroundColor: Color(0xFFF57C00),
         ),
       );
       return;
@@ -101,17 +99,14 @@ class _SignaturePadDetailPageState extends State<SignaturePadDetailPage> {
     setState(() => _isSubmitting = true);
 
     try {
-      // 1️⃣ Capture de la signature
       final bytes = await _captureSignature();
       if (bytes == null) throw Exception('Échec de la capture de la signature');
 
-      // 2️⃣ Préparation des données
       final idReq = widget.requisitionData.idRequisition;
       final idUser = widget.responseModel.id;
-      final role = widget.signerRole.toUpperCase(); // HOD, RH, FM, IE
-      final fileName = '${idReq}${role}${idUser}.png'; // ✅ Format demandé
+      final role = widget.signerRole.toUpperCase();
+      final fileName = '${idReq}${role}${idUser}.png';
 
-      // 3️⃣ 📤 Upload vers Supabase via ton endpoint
       final uploadUrl = Uri.parse(
         '${apiConfig.baseUrl}/api/sendimage/signature',
       );
@@ -119,7 +114,7 @@ class _SignaturePadDetailPageState extends State<SignaturePadDetailPage> {
 
       uploadRequest.files.add(
         http.MultipartFile.fromBytes(
-          'file', // Champ attendu par ton backend
+          'file',
           bytes,
           filename: fileName,
           contentType: MediaType('image', 'png'),
@@ -136,7 +131,6 @@ class _SignaturePadDetailPageState extends State<SignaturePadDetailPage> {
         throw Exception('Échec upload Supabase: $error');
       }
 
-      // 4️⃣ 🗄️ Mise à jour de la base de données avec le nom du fichier
       final dbUrl = Uri.parse(
         '${apiConfig.baseUrl}/api/requisition/update/sign/$idReq',
       );
@@ -144,8 +138,8 @@ class _SignaturePadDetailPageState extends State<SignaturePadDetailPage> {
         dbUrl,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'role': role, // HOD, RH, FM, ou IE
-          'filename': fileName, // Nom exact stocké dans Supabase
+          'role': role,
+          'filename': fileName,
         }),
       );
 
@@ -155,13 +149,16 @@ class _SignaturePadDetailPageState extends State<SignaturePadDetailPage> {
         throw Exception('Échec mise à jour DB: $error');
       }
 
-      // 5️⃣ ✅ Succès : feedback + retour
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('✅ Signature enregistrée avec succès'),
-          backgroundColor: Colors.green,
+          backgroundColor: Color(0xFF2E7D32),
           duration: Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(14)),
+          ),
         ),
       );
       socket.emit('signature_updated', {'idRequisition': idReq, 'role': role});
@@ -176,7 +173,11 @@ class _SignaturePadDetailPageState extends State<SignaturePadDetailPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('❌ ${e.toString()}'),
-          backgroundColor: Colors.red,
+          backgroundColor: const Color(0xFFE53935),
+          behavior: SnackBarBehavior.floating,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(14)),
+          ),
         ),
       );
     } finally {
@@ -184,38 +185,72 @@ class _SignaturePadDetailPageState extends State<SignaturePadDetailPage> {
     }
   }
 
-  // ─────── UI (identique à SignaturePadPage, juste le titre change) ───────
   @override
   Widget build(BuildContext context) {
     final hasSignature = _strokes.isNotEmpty || _currentStroke.length > 2;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Signature - ${widget.signerName}'),
-        backgroundColor: Colors.blue.shade700,
+        titleSpacing: 0,
+        title: Row(
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.asset(
+                  'assets/icon/logo.jpg',
+                  fit: BoxFit.contain,
+                  width: 24,
+                  height: 24,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(
+                      Icons.business,
+                      size: 18,
+                      color: Colors.white,
+                    );
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Signature - ${widget.signerName}',
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+            ),
+          ],
+        ),
+        backgroundColor: const Color(0xFF1565C0),
         elevation: 0,
+        surfaceTintColor: const Color(0xFF1565C0),
         leading: IconButton(
-          icon: const Icon(Icons.close),
+          icon: const Icon(Icons.close_rounded),
           onPressed: () => Navigator.pop(context),
         ),
+        foregroundColor: Colors.white,
       ),
       body: Column(
         children: [
-          // En-tête signataire
           Container(
             padding: const EdgeInsets.all(16),
-            color: Colors.blue.shade50,
+            color: const Color(0xFFE3F2FD),
             child: Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: Colors.blue.shade100,
+                  radius: 22,
+                  backgroundColor: const Color(0xFFE3F2FD),
                   child: Text(
                     widget.signerName.isNotEmpty
                         ? widget.signerName[0].toUpperCase()
                         : '?',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1565C0),
                     ),
                   ),
                 ),
@@ -229,12 +264,13 @@ class _SignaturePadDetailPageState extends State<SignaturePadDetailPage> {
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
+                          color: Color(0xFF1A1A2E),
                         ),
                       ),
                       Text(
                         'Rôle: ${widget.signerRole.toUpperCase()}',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
+                        style: const TextStyle(
+                          color: Color(0xFF757575),
                           fontSize: 13,
                         ),
                       ),
@@ -245,7 +281,6 @@ class _SignaturePadDetailPageState extends State<SignaturePadDetailPage> {
             ),
           ),
 
-          // Zone de signature
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(20),
@@ -261,17 +296,17 @@ class _SignaturePadDetailPageState extends State<SignaturePadDetailPage> {
                     decoration: BoxDecoration(
                       border: Border.all(
                         color: hasSignature
-                            ? Colors.blue.shade400
-                            : Colors.grey.shade300,
+                            ? const Color(0xFF1565C0)
+                            : const Color(0xFFE0E0E0),
                         width: 2,
                       ),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(20),
                       color: Colors.white,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.blue.withOpacity(0.08),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
+                          color: const Color(0xFF1565C0).withOpacity(0.06),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
                         ),
                       ],
                     ),
@@ -285,14 +320,14 @@ class _SignaturePadDetailPageState extends State<SignaturePadDetailPage> {
                                 Icon(
                                   Icons.edit_note_outlined,
                                   size: 56,
-                                  color: Colors.grey.shade400,
+                                  color: const Color(0xFFBDBDBD),
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
                                   'Signez ici avec votre doigt ou un stylet',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    color: Colors.grey.shade500,
+                                    color: const Color(0xFF757575),
                                     fontSize: 14,
                                   ),
                                 ),
@@ -316,18 +351,17 @@ class _SignaturePadDetailPageState extends State<SignaturePadDetailPage> {
             ),
           ),
 
-          // Boutons d'action
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
             child: Row(
               children: [
                 OutlinedButton.icon(
                   onPressed: _clear,
-                  icon: const Icon(Icons.clear, size: 20),
+                  icon: const Icon(Icons.clear_rounded, size: 20),
                   label: const Text('Effacer'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red.shade700,
-                    side: BorderSide(color: Colors.red.shade200),
+                    foregroundColor: const Color(0xFFE53935),
+                    side: const BorderSide(color: Color(0xFFFFCDD2)),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
                       vertical: 14,
@@ -344,25 +378,23 @@ class _SignaturePadDetailPageState extends State<SignaturePadDetailPage> {
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
-                            strokeWidth: 2,
+                            strokeWidth: 2.5,
                             color: Colors.white,
                           ),
                         )
-                      : const Icon(Icons.check, size: 20),
-                  label: Text(
-                    _isSubmitting ? 'Envoi...' : 'Valider la signature',
-                  ),
+                      : const Icon(Icons.check_rounded, size: 20),
+                  label: Text(_isSubmitting ? 'Envoi...' : 'Valider la signature'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.shade700,
+                    backgroundColor: const Color(0xFF1565C0),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24,
                       vertical: 14,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    minimumSize: const Size(140, 50),
+                    minimumSize: const Size(160, 50),
                   ),
                 ),
               ],
@@ -374,9 +406,6 @@ class _SignaturePadDetailPageState extends State<SignaturePadDetailPage> {
   }
 }
 
-// ─────────────────────────────────────────────
-// 🎨 SignaturePainter (identique à l'original)
-// ─────────────────────────────────────────────
 class _SignaturePainter extends CustomPainter {
   final List<List<StrokePoint>> strokes;
   final List<StrokePoint> currentStroke;
@@ -396,7 +425,7 @@ class _SignaturePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFF1A237E)
+      ..color = const Color(0xFF1565C0)
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
       ..isAntiAlias = true

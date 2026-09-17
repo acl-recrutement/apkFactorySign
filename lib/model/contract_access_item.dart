@@ -37,9 +37,10 @@ class Contract {
   final String? type;
   final String? signhr;
   final String? signPers;
-  final String? matricule; // ✅ AJOUT : matricule est dans Contract
+  final String? matricule;
   final String? contenue;
   final double? salaire;
+  final String? pdfPath;
 
   Contract({
     this.idContract,
@@ -50,6 +51,7 @@ class Contract {
     this.matricule,
     this.contenue,
     this.salaire,
+    this.pdfPath,
   });
 
   factory Contract.fromJson(Map<String, dynamic> json) => Contract(
@@ -58,9 +60,10 @@ class Contract {
     type: json['type'],
     signhr: json['signhr'],
     signPers: json['signPers'],
-    matricule: json['matricule']?.toString(), // ✅ Conversion en String
+    matricule: json['matricule']?.toString(),
     contenue: json['contenue'],
     salaire: json['salaire']?.toDouble(),
+    pdfPath: json['pdf_path'],
   );
 }
 

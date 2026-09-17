@@ -7,7 +7,7 @@ import 'package:printing/printing.dart';
 
 class ContractDetailsPage extends StatelessWidget {
   final Map<String, dynamic> requisitionData;
-  final String signerRole; // 'RH' ou 'RHO'
+  final String signerRole;
 
   const ContractDetailsPage({
     Key? key,
@@ -15,21 +15,19 @@ class ContractDetailsPage extends StatelessWidget {
     required this.signerRole,
   }) : super(key: key);
 
-  // 🎨 Helper : Couleur selon le type de contrat
   Color _getTypeColor(String type) {
     switch (type.toUpperCase()) {
       case 'CDI':
-        return Colors.green.shade700;
+        return const Color(0xFF2E7D32);
       case 'CDD':
-        return Colors.orange.shade700;
+        return const Color(0xFFEF6C00);
       case 'STAGE':
-        return Colors.blue.shade700;
+        return const Color(0xFF1565C0);
       default:
-        return Colors.grey.shade700;
+        return const Color(0xFF757575);
     }
   }
 
-  // 📄 Génération du PDF (optionnel - à activer si besoin)
   Future<void> _generateAndPrintPDF(BuildContext context) async {
     final pdf = pw.Document();
 
@@ -69,7 +67,6 @@ class ContractDetailsPage extends StatelessWidget {
               'CONTENU DU CONTRAT...',
               style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
             ),
-            // TODO: Ajouter ici le contenu complet des articles
           ],
         ),
       ),
@@ -82,7 +79,6 @@ class ContractDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 📋 Extraction des données
     final employeeName =
         '${requisitionData['prenom']} ${requisitionData['nom']}'.trim();
     final contractType = requisitionData['type'] ?? 'CDI';
@@ -91,72 +87,106 @@ class ContractDetailsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Détails du contrat'),
-        backgroundColor: Colors.blue.shade700,
+        titleSpacing: 0,
+        title: Row(
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.asset(
+                  'assets/icon/logo.jpg',
+                  fit: BoxFit.contain,
+                  width: 24,
+                  height: 24,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(
+                      Icons.business,
+                      size: 18,
+                      color: Colors.white,
+                    );
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Détails du contrat',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+            ),
+          ],
+        ),
+        backgroundColor: const Color(0xFF1565C0),
         elevation: 0,
+        surfaceTintColor: const Color(0xFF1565C0),
         centerTitle: true,
+        foregroundColor: Colors.white,
         actions: [
-          // 🖨️ Bouton Télécharger PDF (optionnel)
           IconButton(
-            icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
+            icon: const Icon(Icons.picture_as_pdf_rounded, color: Colors.white),
             tooltip: 'Télécharger en PDF',
             onPressed: () => _generateAndPrintPDF(context),
           ),
         ],
       ),
       body: Container(
-        color: Colors.grey.shade100,
+        color: const Color(0xFFF5F7FA),
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // 📄 FEUILLE DE CONTRAT (style papier)
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(18),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
+                    color: const Color(0xFF1565C0).withOpacity(0.06),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
               child: Column(
                 children: [
-                  // 🏢 EN-TÊTE AVEC LOGO
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
+                      color: const Color(0xFFE3F2FD),
                       borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(12),
+                        top: Radius.circular(18),
                       ),
                       border: Border(
-                        bottom: BorderSide(color: Colors.blue.shade200),
+                        bottom: BorderSide(
+                          color: const Color(0xFF1565C0).withOpacity(0.1),
+                        ),
                       ),
                     ),
                     child: Column(
                       children: [
-                        // 🖼️ LOGO — À REMPLACER PAR TON FICHIER
-                        // 👇 EMPLACEMENT DU LOGO 👇
                         Container(
                           height: 80,
                           width: 80,
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.blue.shade200),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: const Color(0xFF1565C0).withOpacity(0.15),
+                            ),
                           ),
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(14),
                             child: Image.asset(
-                              'assets/images/logo_aquarelle.jpeg',
+                              'assets/icon/logo.jpg',
                               errorBuilder: (context, error, stackTrace) =>
                                   Icon(
                                     Icons.business,
                                     size: 40,
-                                    color: Colors.blue.shade400,
+                                    color: const Color(0xFF1565C0),
                                   ),
                               fit: BoxFit.contain,
                             ),
@@ -166,16 +196,16 @@ class ContractDetailsPage extends StatelessWidget {
                         Text(
                           'AQUARELLE MADAGASCAR',
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                             fontSize: 16,
-                            color: Colors.blue.shade900,
+                            color: const Color(0xFF1565C0),
                           ),
                         ),
                         Text(
                           'Code du Travail Malagasy • Loi 2024-14',
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.grey.shade600,
+                            color: const Color(0xFF757575),
                             fontStyle: FontStyle.italic,
                           ),
                         ),
@@ -183,24 +213,22 @@ class ContractDetailsPage extends StatelessWidget {
                     ),
                   ),
 
-                  // 📋 CORPS DU CONTRAT
                   Padding(
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Titre principal
                         Center(
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
+                              horizontal: 18,
                               vertical: 8,
                             ),
                             decoration: BoxDecoration(
                               color: _getTypeColor(
                                 contractType,
                               ).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(14),
                               border: Border.all(
                                 color: _getTypeColor(contractType),
                                 width: 1,
@@ -209,8 +237,8 @@ class ContractDetailsPage extends StatelessWidget {
                             child: Text(
                               'CONTRAT DE TRAVAIL — $contractType',
                               style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
                                 color: _getTypeColor(contractType),
                               ),
                             ),
@@ -218,7 +246,6 @@ class ContractDetailsPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 20),
 
-                        // 👤 Carte employé
                         _buildInfoCard(
                           title: '📄 SALARIÉ',
                           children: [
@@ -240,7 +267,6 @@ class ContractDetailsPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
 
-                        // 💼 Carte poste
                         _buildInfoCard(
                           title: '💼 POSTE & AFFECTATION',
                           children: [
@@ -262,13 +288,12 @@ class ContractDetailsPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 24),
 
-                        // 📜 Articles du contrat (statiques)
                         const Text(
                           'CLAUSES CONTRACTUELLES',
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                             fontSize: 14,
-                            color: Colors.blueGrey,
+                            color: Color(0xFF37474F),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -329,13 +354,14 @@ class ContractDetailsPage extends StatelessWidget {
 
                         const SizedBox(height: 20),
 
-                        // ✍️ Zone de signature (indicative)
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: Colors.grey.shade300),
+                            color: const Color(0xFFF5F7FA),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: const Color(0xFFE0E0E0),
+                            ),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -343,8 +369,8 @@ class ContractDetailsPage extends StatelessWidget {
                               Text(
                                 '✍️ Signatures',
                                 style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey.shade800,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF37474F),
                                 ),
                               ),
                               const SizedBox(height: 12),
@@ -354,11 +380,11 @@ class ContractDetailsPage extends StatelessWidget {
                                 children: [
                                   _buildSignaturePlaceholder(
                                     'Employé',
-                                    Colors.green,
+                                    const Color(0xFF2E7D32),
                                   ),
                                   _buildSignaturePlaceholder(
                                     'Responsable RH',
-                                    Colors.blue,
+                                    const Color(0xFF1565C0),
                                   ),
                                 ],
                               ),
@@ -369,35 +395,34 @@ class ContractDetailsPage extends StatelessWidget {
                     ),
                   ),
 
-                  // 🦶 PIED DE PAGE
                   Container(
                     padding: const EdgeInsets.symmetric(
                       vertical: 12,
                       horizontal: 20,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
+                      color: const Color(0xFFF5F7FA),
                       borderRadius: const BorderRadius.vertical(
-                        bottom: Radius.circular(12),
+                        bottom: Radius.circular(18),
                       ),
                       border: Border(
-                        top: BorderSide(color: Colors.grey.shade300),
+                        top: BorderSide(color: const Color(0xFFE0E0E0)),
                       ),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          Icons.lock_outline,
+                          Icons.lock_outline_rounded,
                           size: 14,
-                          color: Colors.grey.shade600,
+                          color: const Color(0xFF757575),
                         ),
                         const SizedBox(width: 6),
                         Text(
                           'Document confidentiel • Généré le ${DateTime.now().toString().split(' ')[0]}',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 10,
-                            color: Colors.grey.shade600,
+                            color: Color(0xFF757575),
                             fontStyle: FontStyle.italic,
                           ),
                         ),
@@ -410,18 +435,17 @@ class ContractDetailsPage extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // 🔘 Boutons d'action
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back, size: 18),
+                    icon: const Icon(Icons.arrow_back_rounded, size: 18),
                     label: const Text('Retour'),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                     ),
                   ),
@@ -430,14 +454,14 @@ class ContractDetailsPage extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () => _generateAndPrintPDF(context),
-                    icon: const Icon(Icons.download, size: 18),
+                    icon: const Icon(Icons.download_rounded, size: 18),
                     label: const Text('PDF'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue.shade700,
+                      backgroundColor: const Color(0xFF1565C0),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                     ),
                   ),
@@ -451,7 +475,6 @@ class ContractDetailsPage extends StatelessWidget {
     );
   }
 
-  // 🧱 Widget : Carte d'information
   Widget _buildInfoCard({
     required String title,
     required List<Widget> children,
@@ -459,19 +482,19 @@ class ContractDetailsPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade300),
+        color: const Color(0xFFF5F7FA),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE0E0E0)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
               fontSize: 13,
-              color: Colors.grey.shade800,
+              color: Color(0xFF37474F),
               letterSpacing: 0.3,
             ),
           ),
@@ -482,7 +505,6 @@ class ContractDetailsPage extends StatelessWidget {
     );
   }
 
-  // 📋 Widget : Ligne d'information
   Widget _buildInfoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -493,9 +515,9 @@ class ContractDetailsPage extends StatelessWidget {
             width: 130,
             child: Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 12,
-                color: Colors.grey.shade600,
+                color: Color(0xFF757575),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -506,7 +528,7 @@ class ContractDetailsPage extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: Color(0xFF1A1A2E),
               ),
             ),
           ),
@@ -515,7 +537,6 @@ class ContractDetailsPage extends StatelessWidget {
     );
   }
 
-  // 📜 Widget : Article du contrat
   Widget _buildArticle({
     required int number,
     required String title,
@@ -529,9 +550,9 @@ class ContractDetailsPage extends StatelessWidget {
           Text(
             'Article $number — $title',
             style: const TextStyle(
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
               fontSize: 13,
-              color: Colors.blueGrey,
+              color: Color(0xFF37474F),
             ),
           ),
           const SizedBox(height: 6),
@@ -539,7 +560,7 @@ class ContractDetailsPage extends StatelessWidget {
             content,
             style: TextStyle(
               fontSize: 12,
-              color: Colors.grey.shade800,
+              color: const Color(0xFF424242),
               height: 1.5,
             ),
             textAlign: TextAlign.justify,
@@ -549,7 +570,6 @@ class ContractDetailsPage extends StatelessWidget {
     );
   }
 
-  // ✍️ Widget : Placeholder de signature
   Widget _buildSignaturePlaceholder(String label, Color color) {
     return Column(
       children: [
@@ -557,10 +577,7 @@ class ContractDetailsPage extends StatelessWidget {
           width: 120,
           height: 60,
           decoration: BoxDecoration(
-            border: Border.all(
-              color: color.withOpacity(0.5),
-              style: BorderStyle.solid,
-            ),
+            border: Border.all(color: color.withOpacity(0.5)),
             borderRadius: BorderRadius.circular(8),
             color: color.withOpacity(0.05),
           ),

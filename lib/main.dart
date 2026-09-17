@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:myapp/model/userModel.dart';
 import 'package:myapp/view/HomePage.dart';
 import 'controller/authController.dart';
+
+void hapticFeedback() {
+  HapticFeedback.lightImpact();
+}
 
 void main() async {
   runApp(const MyApp());
@@ -10,19 +15,214 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  @override  
+  @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'HR Portal',
+      title: 'AQUARELLE MADAGASCAR',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6366F1),
+          seedColor: const Color(0xFF1565C0),
           brightness: Brightness.light,
+          primary: const Color(0xFF1565C0),
+          secondary: const Color(0xFF42A5F5),
+          surface: Colors.white,
+          background: const Color(0xFFF5F7FA),
+          error: const Color(0xFFE53935),
+          onPrimary: Colors.white,
+          onSecondary: Colors.white,
+          onSurface: const Color(0xFF1A1A2E),
+          onBackground: const Color(0xFF1A1A2E),
+          onError: Colors.white,
         ),
         useMaterial3: true,
+        fontFamily: 'Roboto',
+        textTheme: const TextTheme(
+          titleLarge: TextStyle(fontWeight: FontWeight.w800, letterSpacing: 1.2),
+          titleMedium: TextStyle(fontWeight: FontWeight.w600),
+          bodyMedium: TextStyle(color: Color(0xFF757575)),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            elevation: 2,
+            shadowColor: const Color(0xFF1565C0).withOpacity(0.3),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+        ),
+        cardTheme: CardThemeData(
+          elevation: 0,
+          shadowColor: Colors.black.withValues(alpha: 0.06),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Color(0xFF1565C0), width: 2),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Color(0xFFE53935), width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          labelStyle: const TextStyle(fontSize: 14),
+        ),
       ),
-      home: const LoginPage(),
+      home: const SplashScreen(),
+    );
+  }
+}
+
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
+    );
+    _animationController.forward();
+
+    Future.delayed(const Duration(milliseconds: 2500), () {
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const LoginPage(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+            transitionDuration: const Duration(milliseconds: 600),
+          ),
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF1565C0), Color(0xFF42A5F5)],
+          ),
+        ),
+        child: Center(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: ScaleTransition(
+              scale: _scaleAnimation,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 140,
+                    height: 140,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(28),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.15),
+                          blurRadius: 30,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(28),
+                      child: Image.asset(
+                        'assets/icon/logo.jpg',
+                        fit: BoxFit.contain,
+                        width: 120,
+                        height: 120,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(
+                            Icons.business,
+                            size: 70,
+                            color: const Color(0xFF1565C0),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Text(
+                    'AQUARELLE',
+                    style: TextStyle(
+                      fontSize: 36,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  Text(
+                    'MADAGASCAR',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white.withOpacity(0.85),
+                      letterSpacing: 4,
+                    ),
+                  ),
+                  const SizedBox(height: 48),
+                  SizedBox(
+                    width: 32,
+                    height: 32,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Colors.white.withOpacity(0.7),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -81,27 +281,33 @@ class _LoginPageState extends State<LoginPage>
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: const Text('Connexion réussie !'),
-              backgroundColor: Colors.green,
+              backgroundColor: const Color(0xFF2E7D32),
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(14),
               ),
             ),
           );
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (context) => Homepage(responseModel: resposne),
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  Homepage(responseModel: resposne),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+              transitionDuration: const Duration(milliseconds: 500),
             ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: const Text('mail ou mot de passe incorect !'),
-              backgroundColor: const Color.fromARGB(255, 238, 30, 30),
+              backgroundColor: const Color(0xFFE53935),
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(14),
               ),
             ),
           );
@@ -112,10 +318,10 @@ class _LoginPageState extends State<LoginPage>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erreur de connexion: $e'),
-            backgroundColor: const Color.fromARGB(255, 238, 30, 30),
+            backgroundColor: const Color(0xFFE53935),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(14),
             ),
           ),
         );
@@ -127,14 +333,14 @@ class _LoginPageState extends State<LoginPage>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color.fromARGB(255, 135, 135, 145),
-              const Color.fromARGB(255, 168, 168, 175),
-              const Color.fromARGB(255, 248, 248, 250),
+              Color(0xFFF5F7FA),
+              Color(0xFFE8EAF6),
+              Color(0xFFF5F7FA),
             ],
           ),
         ),
@@ -144,62 +350,76 @@ class _LoginPageState extends State<LoginPage>
               padding: const EdgeInsets.all(24.0),
               child: FadeTransition(
                 opacity: _fadeAnimation,
-                child: Card(
-                  elevation: 8,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF1565C0).withOpacity(0.1),
+                        blurRadius: 40,
+                        offset: const Offset(0, 20),
+                      ),
+                    ],
                   ),
-                  child: Container(
-                    constraints: const BoxConstraints(maxWidth: 400),
-                    padding: const EdgeInsets.all(32.0),
+                  child: Padding(
+                    padding: const EdgeInsets.all(36.0),
                     child: Form(
                       key: _formKey,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Logo
                           Container(
-                            padding: const EdgeInsets.all(16),
-                            child: Image.asset(
-                              'assets/images/logo.png',
-                              width: 80,
-                              height: 80,
-                              fit: BoxFit.contain,
+                            width: 90,
+                            height: 90,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE3F2FD),
+                              borderRadius: BorderRadius.circular(22),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(22),
+                              child: Image.asset(
+                                'assets/icon/logo.jpg',
+                                fit: BoxFit.contain,
+                                width: 70,
+                                height: 70,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Icon(
+                                    Icons.business,
+                                    size: 44,
+                                    color: const Color(0xFF1565C0),
+                                  );
+                                },
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 24),
-
-                          // Titre
+                          const SizedBox(height: 28),
                           Text(
-                            'HR Portal',
-                            style: Theme.of(context).textTheme.headlineMedium
+                            'AQUARELLE MADAGASCAR',
+                            style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF1F2937),
+                                  fontWeight: FontWeight.w800,
+                                  color: const Color(0xFF1565C0),
+                                  letterSpacing: 1.2,
                                 ),
+                            textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Bienvenue ! Connectez-vous à votre compte',
                             style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: Colors.grey[600]),
+                                ?.copyWith(color: const Color(0xFF757575)),
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 32),
-
-                          // Champ Email
+                          const SizedBox(height: 36),
                           TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                               labelText: 'Email',
                               hintText: 'votre.email@entreprise.com',
-                              prefixIcon: const Icon(Icons.email_outlined),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              filled: true,
-                              fillColor: Colors.grey[50],
+                              prefixIcon: Icon(Icons.email_outlined),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -211,9 +431,7 @@ class _LoginPageState extends State<LoginPage>
                               return null;
                             },
                           ),
-                          const SizedBox(height: 16),
-
-                          // Champ Mot de passe
+                          const SizedBox(height: 18),
                           TextFormField(
                             controller: _passwordController,
                             obscureText: _obscurePassword,
@@ -233,23 +451,15 @@ class _LoginPageState extends State<LoginPage>
                                   });
                                 },
                               ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              filled: true,
-                              fillColor: Colors.grey[50],
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Veuillez entrer votre mot de passe';
                               }
-
                               return null;
                             },
                           ),
-                          const SizedBox(height: 8),
-
-                          // Mot de passe oublié
+                          const SizedBox(height: 10),
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton(
@@ -261,7 +471,7 @@ class _LoginPageState extends State<LoginPage>
                                     ),
                                     behavior: SnackBarBehavior.floating,
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
+                                      borderRadius: BorderRadius.circular(14),
                                     ),
                                   ),
                                 );
@@ -269,28 +479,22 @@ class _LoginPageState extends State<LoginPage>
                               child: const Text('Mot de passe oublié ?'),
                             ),
                           ),
-                          const SizedBox(height: 24),
-
-                          // Bouton de connexion
+                          const SizedBox(height: 26),
                           SizedBox(
                             width: double.infinity,
-                            height: 50,
+                            height: 52,
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : _handleLogin,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF6366F1),
+                                backgroundColor: const Color(0xFF1565C0),
                                 foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                elevation: 2,
                               ),
                               child: _isLoading
                                   ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
+                                      height: 22,
+                                      width: 22,
                                       child: CircularProgressIndicator(
-                                        strokeWidth: 2,
+                                        strokeWidth: 2.5,
                                         valueColor:
                                             AlwaysStoppedAnimation<Color>(
                                               Colors.white,
@@ -301,56 +505,56 @@ class _LoginPageState extends State<LoginPage>
                                       'Se connecter',
                                       style: TextStyle(
                                         fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                                        fontWeight: FontWeight.w700,
                                       ),
                                     ),
                             ),
                           ),
-                          const SizedBox(height: 24),
-
-                          // Séparateur
+                          const SizedBox(height: 26),
                           Row(
                             children: [
-                              Expanded(child: Divider(color: Colors.grey[300])),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                ),
-                                child: Text(
-                                  'OU',
-                                  style: TextStyle(color: Colors.grey[600]),
+                              Expanded(
+                                child: Divider(
+                                  color: const Color(0xFFE0E0E0),
+                                  thickness: 1,
                                 ),
                               ),
-                              Expanded(child: Divider(color: Colors.grey[300])),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 16),
+                                child: Text(
+                                  'OU',
+                                  style: TextStyle(color: Color(0xFF9E9E9E)),
+                                ),
+                              ),
+                              Expanded(
+                                child: Divider(
+                                  color: const Color(0xFFE0E0E0),
+                                  thickness: 1,
+                                ),
+                              ),
                             ],
                           ),
-                          const SizedBox(height: 24),
-
-                          // Boutons alternatifs
+                          const SizedBox(height: 26),
                           OutlinedButton.icon(
                             onPressed: () {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: const Text('Connexion avec SSO'),
+                                  content: const Text('Connexion avec SIGN PAD HR'),
                                   behavior: SnackBarBehavior.floating,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
+                                    borderRadius: BorderRadius.circular(14),
                                   ),
                                 ),
                               );
                             },
                             icon: const Icon(Icons.business),
-                            label: const Text('Connexion SSO'),
+                            label: const Text('SIGN PAD HR'),
                             style: OutlinedButton.styleFrom(
                               minimumSize: const Size(double.infinity, 50),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                              side: const BorderSide(color: Color(0xFFE0E0E0)),
                             ),
                           ),
-                          const SizedBox(height: 16),
-
-                          // Besoin d'aide
+                          const SizedBox(height: 18),
                           TextButton.icon(
                             onPressed: () {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -360,7 +564,7 @@ class _LoginPageState extends State<LoginPage>
                                   ),
                                   behavior: SnackBarBehavior.floating,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
+                                    borderRadius: BorderRadius.circular(14),
                                   ),
                                 ),
                               );

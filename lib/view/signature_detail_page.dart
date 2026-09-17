@@ -3,13 +3,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:myapp/model/requisition_model.dart';
 import 'package:myapp/model/responseModel.dart';
-import 'signature_pad_detail_page.dart'; // ✅ Import de la page signature dédiée
+import 'signature_pad_detail_page.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:myapp/config/config.dart';
 
 class SignatureDetailPage extends StatefulWidget {
   final ResponseModel responseModel;
-  final RequisitionModel requisitionData; // ✅ Modèle complet de la réquisition
+  final RequisitionModel requisitionData;
 
   const SignatureDetailPage({
     Key? key,
@@ -23,7 +23,7 @@ class SignatureDetailPage extends StatefulWidget {
 
 class _SignatureDetailPageState extends State<SignatureDetailPage> {
   late final IO.Socket socket;
-  bool _isSigned = false; // Pour mettre à jour l'UI après signature
+  bool _isSigned = false;
 
   @override
   void initState() {
@@ -40,7 +40,6 @@ class _SignatureDetailPageState extends State<SignatureDetailPage> {
           .build(),
     )..connect();
 
-    // 🔔 Écouter les mises à jour de signature en temps réel
     socket.on('signature_validated', (data) {
       if (mounted &&
           data['idRequisition'] == widget.requisitionData.idRequisition) {
@@ -48,8 +47,11 @@ class _SignatureDetailPageState extends State<SignatureDetailPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('✅ Signature validée par un autre utilisateur'),
-            backgroundColor: Colors.green,
+            backgroundColor: Color(0xFF2E7D32),
             behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(14)),
+            ),
           ),
         );
       }
@@ -62,45 +64,41 @@ class _SignatureDetailPageState extends State<SignatureDetailPage> {
     super.dispose();
   }
 
-  // 🎯 Navigation vers la page de signature dédiée
   Future<void> _navigateToSignaturePad() async {
     final result = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
         builder: (context) => SignaturePadDetailPage(
-          // ✅ Nouvelle classe
           responseModel: widget.responseModel,
           requisitionData: widget.requisitionData,
           signerName: _getSignerName(),
-          signerRole:
-              widget.responseModel.role, // Sera converti en HOD/RH/FM/IE
+          signerRole: widget.responseModel.role,
         ),
       ),
     );
 
-    // Si signature réussie, mettre à jour l'UI locale
     if (result == true && mounted) {
       setState(() => _isSigned = true);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('✅ Signature enregistrée avec succès'),
-          backgroundColor: Colors.green,
+          backgroundColor: Color(0xFF2E7D32),
           behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(14)),
+          ),
         ),
       );
     }
   }
 
   String _getSignerName() {
-    // RHO signe pour l'employé, RH signe pour lui-même
-
     final nom = widget.responseModel.nom;
     final prenom = widget.responseModel.prenom;
     return '$prenom $nom'.trim().isEmpty ? 'Signer par' : '$prenom $nom';
   }
 
   String _formatDate(String? dateStr) {
-    // ✅ Gestion null/vide en entrée
     if (dateStr == null || dateStr.isEmpty) return '–';
 
     try {
@@ -110,8 +108,6 @@ class _SignatureDetailPageState extends State<SignatureDetailPage> {
       }
       return dateStr;
     } catch (_) {
-      // ✅ CORRECTION 1: Utiliser {} au lieu de =>
-      // ✅ CORRECTION 2: Retourner un String non-nullable avec ?? '–'
       return dateStr;
     }
   }
@@ -119,41 +115,77 @@ class _SignatureDetailPageState extends State<SignatureDetailPage> {
   @override
   Widget build(BuildContext context) {
     final data = widget.requisitionData;
-    final canSign = _isSigned == false; // Empêcher de re-signer si déjà fait
+    final canSign = _isSigned == false;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Détails de la réquisition'),
-        backgroundColor: Colors.blue.shade700,
+        titleSpacing: 0,
+        title: Row(
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.asset(
+                  'assets/icon/logo.jpg',
+                  fit: BoxFit.contain,
+                  width: 24,
+                  height: 24,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(
+                      Icons.business,
+                      size: 18,
+                      color: Colors.white,
+                    );
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Détails de la réquisition',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+            ),
+          ],
+        ),
+        backgroundColor: const Color(0xFF1565C0),
         elevation: 0,
+        surfaceTintColor: const Color(0xFF1565C0),
         centerTitle: true,
+        foregroundColor: Colors.white,
       ),
       body: SafeArea(
         child: Column(
           children: [
-            // 📋 CARTE D'INFORMATIONS PROFESSIONNELLE
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 🏷️ En-tête avec statut
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [Colors.blue.shade50, Colors.white],
+                          colors: [const Color(0xFFE3F2FD), Colors.white],
                         ),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.blue.shade200),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: const Color(0xFF1565C0).withOpacity(0.15),
+                          width: 1.5,
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.blue.withOpacity(0.08),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
+                            color: const Color(0xFF1565C0).withOpacity(0.06),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
@@ -167,72 +199,62 @@ class _SignatureDetailPageState extends State<SignatureDetailPage> {
                                 child: Text(
                                   data.position,
                                   style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w700,
                                     fontSize: 18,
-                                    color: Colors.blueGrey,
+                                    color: Color(0xFF37474F),
                                   ),
                                 ),
                               ),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
+                                  horizontal: 14,
                                   vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
                                   color: _isSigned
-                                      ? Colors.green.shade100
-                                      : Colors.orange.shade100,
-                                  borderRadius: BorderRadius.circular(20),
+                                      ? const Color(0xFFE8F5E9)
+                                      : const Color(0xFFFFF3E0),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
                                   _isSigned ? '✓ Signé' : '⏳ En attente',
                                   style: TextStyle(
                                     color: _isSigned
-                                        ? Colors.green.shade800
-                                        : Colors.orange.shade800,
+                                        ? const Color(0xFF2E7D32)
+                                        : const Color(0xFFEF6C00),
                                     fontSize: 12,
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                          const Divider(height: 24),
+                          const Divider(height: 24, thickness: 1, color: Color(0xFFE0E0E0)),
                           _buildInfoRow('📁 Département', data.departement),
-                          _buildInfoRow('division', data.division),
+                          _buildInfoRow('Division', data.division),
                           _buildInfoRow('👤 Signataire', _getSignerName()),
-                          _buildInfoRow(
-                            '📅 Date de début',
-                            _formatDate(data.dateDebut),
-                          ),
-                          _buildInfoRow(
-                            '📅 Date de fin',
-                            _formatDate(data.dateFin),
-                          ),
-                          _buildInfoRow('🔢 site', data.site),
-                          _buildInfoRow(
-                            'nombre',
-                            data.nombre?.toString() ?? '–',
-                          ),
+                          _buildInfoRow('📅 Date de début', _formatDate(data.dateDebut)),
+                          _buildInfoRow('📅 Date de fin', _formatDate(data.dateFin)),
+                          _buildInfoRow('🔢 Site', data.site),
+                          _buildInfoRow('Nombre', data.nombre?.toString() ?? '–'),
                         ],
                       ),
                     ),
 
                     const SizedBox(height: 24),
 
-                    // ℹ️ Note informative
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: Colors.amber.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.amber.shade200),
+                        color: const Color(0xFFFFF8E1),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0xFFFFE082)),
                       ),
                       child: Row(
                         children: [
                           Icon(
-                            Icons.info_outline,
-                            color: Colors.amber.shade800,
+                            Icons.info_outline_rounded,
+                            color: const Color(0xFFF9A825),
                             size: 20,
                           ),
                           const SizedBox(width: 10),
@@ -240,7 +262,7 @@ class _SignatureDetailPageState extends State<SignatureDetailPage> {
                             child: Text(
                               'La signature est sécurisée et horodatée. Une fois validée, elle ne peut plus être modifiée.',
                               style: TextStyle(
-                                color: Colors.amber.shade900,
+                                color: const Color(0xFFF57F17),
                                 fontSize: 12,
                                 height: 1.4,
                               ),
@@ -254,16 +276,15 @@ class _SignatureDetailPageState extends State<SignatureDetailPage> {
               ),
             ),
 
-            // ✍️ BOUTON "SIGNER" - Toujours visible en bas
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, -3),
+                    color: Colors.black.withOpacity(0.06),
+                    blurRadius: 16,
+                    offset: const Offset(0, -4),
                   ),
                 ],
               ),
@@ -271,7 +292,10 @@ class _SignatureDetailPageState extends State<SignatureDetailPage> {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: canSign ? _navigateToSignaturePad : null,
-                  icon: const Icon(Icons.edit, size: 22),
+                  icon: Icon(
+                    _isSigned ? Icons.check_circle_rounded : Icons.edit_rounded,
+                    size: 22,
+                  ),
                   label: Text(
                     _isSigned ? '✓ Déjà signé' : '✍️ Signer la réquisition',
                     style: const TextStyle(
@@ -281,8 +305,8 @@ class _SignatureDetailPageState extends State<SignatureDetailPage> {
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: canSign
-                        ? Colors.blue.shade700
-                        : Colors.grey.shade400,
+                        ? const Color(0xFF1565C0)
+                        : const Color(0xFFE0E0E0),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -301,17 +325,17 @@ class _SignatureDetailPageState extends State<SignatureDetailPage> {
 
   Widget _buildInfoRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 120,
+            width: 130,
             child: Text(
               label,
-              style: TextStyle(
-                color: Colors.grey.shade600,
+              style: const TextStyle(
                 fontSize: 13,
+                color: Color(0xFF757575),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -319,7 +343,11 @@ class _SignatureDetailPageState extends State<SignatureDetailPage> {
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1A1A2E),
+              ),
             ),
           ),
         ],

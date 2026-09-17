@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myapp/config/config.dart';
+import 'package:myapp/main.dart';
 import 'package:myapp/model/responseModel.dart';
 import 'package:myapp/model/requisition_model.dart';
 import 'package:myapp/service/requisition_service.dart';
@@ -29,14 +30,12 @@ class _SignaturePageState extends State<SignaturePage> {
     _initSocket();
   }
 
-  /// Charge les réquisitions depuis le service en utilisant le site de l'utilisateur
   Future<List<RequisitionModel>> _loadRequisitions() {
     return RequisitionService.getUnsignedRequisitions(
       widget.responseModel.site,
     );
   }
 
-  /// Initialisation du WebSocket
   void _initSocket() {
     socket = IO.io(apiConfig.baseUrl, {
       'transports': ['websocket'],
@@ -48,8 +47,12 @@ class _SignaturePageState extends State<SignaturePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('✅ ${data['message'] ?? 'Document mis à jour'}'),
-            backgroundColor: Colors.green,
+            backgroundColor: const Color(0xFF2E7D32),
             duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
           ),
         );
         setState(() => _futureRequisitions = _loadRequisitions());
@@ -62,7 +65,6 @@ class _SignaturePageState extends State<SignaturePage> {
     socket.connect();
   }
 
-  /// Gestion des événements timer → suppression de l'accès
   Future<void> _handleTimerEvent(dynamic data) async {
     final idRequisition = data['idRequisition'];
     if (idRequisition != null) {
@@ -75,34 +77,67 @@ class _SignaturePageState extends State<SignaturePage> {
     }
   }
 
+  Future<void> _refreshRequisitions() async {
+    setState(() => _futureRequisitions = _loadRequisitions());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => Homepage(responseModel: widget.responseModel),
+          icon: const Icon(Icons.arrow_back_ios_rounded),
+          onPressed: () => Navigator.pop(context),
+          tooltip: 'Retour',
+        ),
+        titleSpacing: 0,
+        title: Row(
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE3F2FD),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.asset(
+                  'assets/icon/logo.jpg',
+                  fit: BoxFit.contain,
+                  width: 24,
+                  height: 24,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(
+                      Icons.business,
+                      size: 18,
+                      color: const Color(0xFF1565C0),
+                    );
+                  },
+                ),
+              ),
             ),
-          ),
+            const SizedBox(width: 12),
+            const Text(
+              'À signer',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+            ),
+          ],
         ),
-        title: Text(
-          'À signer',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        surfaceTintColor: Colors.white,
       ),
       body: FutureBuilder<List<RequisitionModel>>(
         future: _futureRequisitions,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF1565C0),
+                strokeWidth: 3,
+              ),
+            );
           }
           if (snapshot.hasError) {
             return _buildErrorState(snapshot.error.toString());
@@ -119,265 +154,271 @@ class _SignaturePageState extends State<SignaturePage> {
 
   Widget _buildErrorState(String error) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.error_outline, size: 64, color: Colors.red),
-          const SizedBox(height: 16),
-          Text('Erreur : $error', textAlign: TextAlign.center),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () =>
-                setState(() => _futureRequisitions = _loadRequisitions()),
-            child: const Text('Réessayer'),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFEBEE),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(
+                Icons.error_outline_rounded,
+                size: 40,
+                color: Color(0xFFE53935),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Erreur de chargement',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF1A1A2E),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              error,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Color(0xFF757575), fontSize: 14),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () =>
+                  setState(() => _futureRequisitions = _loadRequisitions()),
+              icon: const Icon(Icons.sync_rounded, size: 20),
+              label: const Text('Réessayer'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1565C0),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildEmptyState() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.description_outlined, size: 64, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          const Text(
-            'Aucun document à signer',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Vous navez aucun document en attente pour le site ${widget.responseModel.site}.',
-            style: TextStyle(color: Colors.grey[600]),
-            textAlign: TextAlign.center,
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8F5E9),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(
+                Icons.check_circle_outline_rounded,
+                size: 40,
+                color: Color(0xFF2E7D32),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Tout est à jour !',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF1A1A2E),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Vous navez aucun document en attente pour le site ${widget.responseModel.site}.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Color(0xFF757575), fontSize: 14),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildRequisitionList(List<RequisitionModel> requisitions) {
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-      itemCount: requisitions.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final req = requisitions[index];
-        if (widget.responseModel.role == 'HOD' && req.signhod == null) {
-          return Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(16),
-              title: Text(
-                req.displayTitle,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    req.departement,
-                    style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    req.formattedDateDebut,
-                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 8),
-                  _buildSignatureChips(req),
-                ],
-              ),
-              trailing: Icon(Icons.chevron_right, color: Colors.grey[400]),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => SignatureDetailPage(
-                    responseModel: widget.responseModel,
-                    requisitionData: req,
-                    // ✅ Passage du modèle complet
-                  ),
-                ),
-              ),
-            ),
-          );
-        } else if (widget.responseModel.role == 'RH' &&
-            req.signhr == null &&
-            req.signhod != null) {
-          return Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(16),
-              title: Text(
-                req.displayTitle,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    req.departement,
-                    style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    req.formattedDateDebut,
-                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 8),
-                  _buildSignatureChips(req),
-                ],
-              ),
-              trailing: Icon(Icons.chevron_right, color: Colors.grey[400]),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => SignatureDetailPage(
-                    responseModel: widget.responseModel,
-                    requisitionData: req,
-                    // ✅ Passage du modèle complet
-                  ),
-                ),
-              ),
-            ),
-          );
-        } else if (widget.responseModel.role == 'IE' &&
-            req.signie == null &&
-            req.signhr != null) {
-          return Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(16),
-              title: Text(
-                req.displayTitle,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    req.departement,
-                    style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    req.formattedDateDebut,
-                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 8),
-                  _buildSignatureChips(req),
-                ],
-              ),
-              trailing: Icon(Icons.chevron_right, color: Colors.grey[400]),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => SignatureDetailPage(
-                    responseModel: widget.responseModel,
-                    requisitionData: req,
-                    // ✅ Passage du modèle complet
-                  ),
-                ),
-              ),
-            ),
-          );
-        } else if (widget.responseModel.role == 'FM' &&
-            req.signfm == null &&
-            req.signie != null &&
-            req.signhr != null) {
-          return Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(16),
-              title: Text(
-                req.displayTitle,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    req.departement,
-                    style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    req.formattedDateDebut,
-                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 8),
-                  _buildSignatureChips(req),
-                ],
-              ),
-              trailing: Icon(Icons.chevron_right, color: Colors.grey[400]),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => SignatureDetailPage(
-                    responseModel: widget.responseModel,
-                    requisitionData: req,
-                    // ✅ Passage du modèle complet
-                  ),
-                ),
-              ),
-            ),
-          );
-        } else {
-          return const SizedBox.shrink(); // Ne rien afficher si le contrat ne correspond pas au rôle
-        }
-      },
+    return RefreshIndicator(
+      onRefresh: _refreshRequisitions,
+      color: const Color(0xFF1565C0),
+      strokeWidth: 2.5,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        itemCount: requisitions.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          final req = requisitions[index];
+          if (widget.responseModel.role == 'HOD' && req.signhod == null) {
+            return _buildRequisitionCard(req);
+          } else if (widget.responseModel.role == 'RH' &&
+              req.signhr == null &&
+              req.signhod != null) {
+            return _buildRequisitionCard(req);
+          } else if (widget.responseModel.role == 'IE' &&
+              req.signie == null &&
+              req.signhr != null) {
+            return _buildRequisitionCard(req);
+          } else if (widget.responseModel.role == 'FM' &&
+              req.signfm == null &&
+              req.signie != null &&
+              req.signhr != null) {
+            return _buildRequisitionCard(req);
+          } else {
+            return const SizedBox.shrink();
+          }
+        },
+      ),
     );
   }
 
-  /// Affiche des chips pour les signatures manquantes
+    Widget _buildRequisitionCard(RequisitionModel req) {
+      final initials = req.displayTitle.isNotEmpty
+          ? req.displayTitle[0].toUpperCase()
+          : '?';
+      return Tooltip(
+        message: req.displayTitle,
+        child: Card(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () {
+              hapticFeedback();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => SignatureDetailPage(
+                    responseModel: widget.responseModel,
+                    requisitionData: req,
+                  ),
+                ),
+              );
+            },
+            child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF42A5F5), Color(0xFF1565C0)],
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Center(
+                    child: Text(
+                      initials,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        req.displayTitle,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                          color: Color(0xFF1A1A2E),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        req.departement,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFF757575),
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        req.formattedDateDebut,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF9E9E9E),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      _buildSignatureChips(req),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: const Color(0xFFBDBDBD),
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSignatureChips(RequisitionModel req) {
     if (req.isFullySigned) {
-      return const Chip(
-        label: Text(
-          '✓ Signé',
-          style: TextStyle(color: Colors.white, fontSize: 12),
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE8F5E9),
+          borderRadius: BorderRadius.circular(8),
         ),
-        backgroundColor: Colors.green,
-        padding: EdgeInsets.zero,
-        visualDensity: VisualDensity.compact,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.check_circle_rounded, size: 14, color: Color(0xFF2E7D32)),
+            const SizedBox(width: 4),
+            Text(
+              'Signé',
+              style: const TextStyle(
+                color: Color(0xFF2E7D32),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       );
     }
-    final missing = req.missingSignatures.take(2).join(', ');
-    return Chip(
-      label: Text('En attente: $missing', style: const TextStyle(fontSize: 12)),
-      backgroundColor: Colors.orange[100],
-      padding: EdgeInsets.zero,
-      visualDensity: VisualDensity.compact,
+    final total = 4;
+    final signed = total - req.missingSignatures.length;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF3E0),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.pending_rounded, size: 14, color: const Color(0xFFEF6C00)),
+          const SizedBox(width: 4),
+          Text(
+            '$signed/$total signé${signed != 1 ? 's' : ''}',
+            style: const TextStyle(
+              color: Color(0xFFEF6C00),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
