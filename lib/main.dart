@@ -237,7 +237,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage>
     with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _isLoading = false;
@@ -259,7 +259,7 @@ class _LoginPageState extends State<LoginPage>
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     _animationController.dispose();
     super.dispose();
@@ -270,10 +270,10 @@ class _LoginPageState extends State<LoginPage>
       setState(() => _isLoading = true);
 
       try {
-        String email = _emailController.text.trim();
+        String username = _usernameController.text.trim();
         String password = _passwordController.text.trim();
         final authController = Authcontroller();
-        final userModel = Usermodel(mail: email, password: password);
+        final userModel = Usermodel(identifier: username, password: password);
         final resposne = await authController.LoginUser(userModel);
         if (resposne.result == true) {
           setState(() => _isLoading = false);
@@ -303,7 +303,7 @@ class _LoginPageState extends State<LoginPage>
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('mail ou mot de passe incorect !'),
+              content: const Text('Matricule ou mot de passe incorrect !'),
               backgroundColor: const Color(0xFFE53935),
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -414,19 +414,27 @@ class _LoginPageState extends State<LoginPage>
                           ),
                           const SizedBox(height: 36),
                           TextFormField(
-                            controller: _emailController,
-                            keyboardType: TextInputType.emailAddress,
+                            controller: _usernameController,
+                            keyboardType: TextInputType.text,
+                            textCapitalization: TextCapitalization.characters,
+                            autocorrect: false,
                             decoration: const InputDecoration(
-                              labelText: 'Email',
-                              hintText: 'votre.email@entreprise.com',
-                              prefixIcon: Icon(Icons.email_outlined),
+                              labelText: 'Matricule',
+                              hintText: 'AMAT4563',
+                              prefixIcon: Icon(Icons.badge_outlined),
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Veuillez entrer votre email';
+                              final input = value?.trim() ?? '';
+                              if (input.isEmpty) {
+                                return 'Veuillez entrer votre matricule';
                               }
-                              if (!value.contains('@')) {
-                                return 'Email invalide';
+                              final isMatricule =
+                                  RegExp(r'^(AMAT|AMAA|LMAA)\d+$', caseSensitive: false)
+                                      .hasMatch(input);
+                              final isEmail =
+                                  RegExp(r'^\S+@\S+\.\S+$').hasMatch(input);
+                              if (!isMatricule && !isEmail) {
+                                return 'Matricule invalide (ex: AMAT4563)';
                               }
                               return null;
                             },
