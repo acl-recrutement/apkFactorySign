@@ -4,6 +4,7 @@ class ResponseModel {
   final String role;
   final int matricule;
   final String site;
+  final String? departement;
   final String nom;
   final String prenom;
   final String mail;
@@ -19,6 +20,7 @@ class ResponseModel {
     required this.role,
     required this.matricule,
     required this.site,
+    this.departement,
     required this.nom,
     required this.prenom,
     required this.mail,
@@ -35,6 +37,7 @@ class ResponseModel {
       role: json['role'],
       matricule: json['matricule'],
       site: json['site'],
+      departement: json['departement'],
       nom: json['nom'],
       prenom: json['prenom'],
       mail: json['mail'],

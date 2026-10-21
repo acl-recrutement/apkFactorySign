@@ -143,9 +143,6 @@ class _SignaturePageState extends State<SignaturePage> {
             return _buildErrorState(snapshot.error.toString());
           }
           final requisitions = snapshot.data ?? [];
-          if (requisitions.isEmpty) {
-            return _buildEmptyState();
-          }
           return _buildRequisitionList(requisitions);
         },
       ),
@@ -202,57 +199,63 @@ class _SignaturePageState extends State<SignaturePage> {
     );
   }
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: const Color(0xFFE8F5E9),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Icon(
-                Icons.check_circle_outline_rounded,
-                size: 40,
-                color: Color(0xFF2E7D32),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Tout est à jour !',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF1A1A2E),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Vous navez aucun document en attente pour le site ${widget.responseModel.site}.',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Color(0xFF757575), fontSize: 14),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+Widget _buildRequisitionList(List<RequisitionModel> requisitions) {
+    // Filtre par département pour le rôle HOD
+    final userDept = widget.responseModel.departement;
+    final filtered = (widget.responseModel.role == 'HOD' && userDept != null && userDept.isNotEmpty)
+        ? requisitions.where((req) => req.departement.trim().toLowerCase() == userDept.trim().toLowerCase()).toList()
+        : requisitions;
 
-  Widget _buildRequisitionList(List<RequisitionModel> requisitions) {
+    if (filtered.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Icon(
+                  Icons.check_circle_outline_rounded,
+                  size: 40,
+                  color: Color(0xFF2E7D32),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Tout est à jour !',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF1A1A2E),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Vous n\'avez aucun document en attente pour le site ${widget.responseModel.site}${widget.responseModel.role == 'HOD' ? ' et département $userDept' : ''}.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Color(0xFF757575), fontSize: 14),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return RefreshIndicator(
       onRefresh: _refreshRequisitions,
       color: const Color(0xFF1565C0),
       strokeWidth: 2.5,
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-        itemCount: requisitions.length,
+        itemCount: filtered.length,
         separatorBuilder: (_, __) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
-          final req = requisitions[index];
+          final req = filtered[index];
           if (widget.responseModel.role == 'HOD' && req.signhod == null) {
             return _buildRequisitionCard(req);
           } else if (widget.responseModel.role == 'RH' &&
