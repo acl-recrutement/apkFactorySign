@@ -350,7 +350,7 @@ Widget _buildRequisitionList(List<RequisitionModel> requisitions) {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        req.formattedDateDebut,
+                        req.formattedTargetDate,
                         style: const TextStyle(
                           fontSize: 12,
                           color: Color(0xFF9E9E9E),

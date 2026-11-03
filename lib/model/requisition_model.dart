@@ -1,7 +1,6 @@
 class RequisitionModel {
   final double? budget;
-  final String dateDebut;
-  final String dateFin;
+  final String targetDate;
   final String departement;
   final String division;
   final int idRequisition;
@@ -18,8 +17,7 @@ class RequisitionModel {
 
   RequisitionModel({
     this.budget,
-    required this.dateDebut,
-    required this.dateFin,
+    required this.targetDate,
     required this.departement,
     required this.division,
     required this.idRequisition,
@@ -38,8 +36,7 @@ class RequisitionModel {
   factory RequisitionModel.fromJson(Map<String, dynamic> json) {
     return RequisitionModel(
       budget: json['budget']?.toDouble(),
-      dateDebut: json['dateDebut']?.toString() ?? '',
-      dateFin: json['dateFin']?.toString() ?? '0000-00-00',
+      targetDate: json['target_date']?.toString() ?? json['dateDebut']?.toString() ?? '',
       departement: json['departement']?.toString() ?? '',
       division: json['division']?.toString() ?? '',
       idRequisition: json['idRequisition'] ?? 0,
@@ -59,8 +56,7 @@ class RequisitionModel {
   Map<String, dynamic> toJson() {
     return {
       'budget': budget,
-      'dateDebut': dateDebut,
-      'dateFin': dateFin,
+      'target_date': targetDate,
       'departement': departement,
       'division': division,
       'idRequisition': idRequisition,
@@ -95,11 +91,11 @@ class RequisitionModel {
   /// Vérifie si le document est entièrement signé
   bool get isFullySigned => missingSignatures.isEmpty;
 
-  /// Formatage de la date pour l'affichage (JJ/MM/AAAA)
-  String get formattedDateDebut {
+  /// Formatage de la date cible pour l'affichage (JJ/MM/AAAA)
+  String get formattedTargetDate {
     try {
       // Format attendu : "Thu, 01 Jan 2026 00:00:00 GMT"
-      final parts = dateDebut.split(' ');
+      final parts = targetDate.split(' ');
       if (parts.length >= 4) {
         final day = parts[1];
         final monthStr = parts[2];
@@ -107,9 +103,9 @@ class RequisitionModel {
         final month = _monthToInt(monthStr);
         return '$day/${month.toString().padLeft(2, '0')}/$year';
       }
-      return dateDebut;
+      return targetDate;
     } catch (_) {
-      return dateDebut;
+      return targetDate;
     }
   }
 

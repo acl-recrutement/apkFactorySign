@@ -31,50 +31,348 @@ class ContractDetailsPage extends StatelessWidget {
   Future<void> _generateAndPrintPDF(BuildContext context) async {
     final pdf = pw.Document();
 
-    pdf.addPage(
-      pw.Page(
-        build: (pw.Context context) => pw.Column(
+    final empNo = (requisitionData['matricule'] ?? '–').toString();
+    final prenom = (requisitionData['prenom'] ?? '').toString();
+    final nom = (requisitionData['nom'] ?? '').toString();
+    final fullname = '$prenom $nom'.trim().isEmpty ? 'Employé' : '$prenom $nom';
+    final dob = (requisitionData['naissance'] ?? '–').toString();
+    final nic = (requisitionData['cin'] ?? '–').toString();
+    final adrs = (requisitionData['Adresse'] ?? '–').toString();
+    final doe = (requisitionData['target_date'] ?? requisitionData['dateDebut'] ?? '–').toString();
+    final occupation = (requisitionData['Fonction'] ?? '–').toString();
+    final departement = (requisitionData['Département'] ?? '–').toString();
+    final site = (requisitionData['site'] ?? '–').toString();
+    final salaire = (requisitionData['salaire'] ?? '–').toString();
+    final contractType = requisitionData['type'] ?? 'CDI';
+
+    final page = pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(12),
+      build: (pw.Context context) {
+        return pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
+            // --- Header ---
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text(
+                  'Laharana : $empNo',
+                  style: pw.TextStyle(
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 7,
+                  ),
+                ),
+                pw.Text(
+                  site.toLowerCase() == 'tana' ? 'Antananarivo' : site,
+                  style: pw.TextStyle(fontSize: 6.5, color: PdfColors.grey600),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 3),
             pw.Center(
               child: pw.Text(
-                'AQUARELLE MADAGASCAR',
+                'FIFANEKENA ARAK’ASA MANDRITRY NY FOTOANA TSY VOAFETRA',
                 style: pw.TextStyle(
-                  fontSize: 18,
                   fontWeight: pw.FontWeight.bold,
+                  fontSize: 7.6,
                 ),
               ),
             ),
-            pw.SizedBox(height: 10),
             pw.Center(
               child: pw.Text(
-                'Contrat de Travail — ${requisitionData['type'] ?? 'CDI'}',
-                style: pw.TextStyle(
-                  fontSize: 16,
-                  fontWeight: pw.FontWeight.bold,
-                ),
+                '(Contrat à durée indéterminée — CDI)',
+                style: pw.TextStyle(fontSize: 5.8, color: PdfColors.grey600),
               ),
             ),
-            pw.Divider(),
+            pw.SizedBox(height: 4),
+            pw.Text('Ifanaovan’ ny : MPAMPIASA', style: _txt(6.4)),
+            pw.Text('Orinasa AQUARELLE MADAGASCAR S.A', style: _txt(6.4)),
             pw.Text(
-              'Employé : ${requisitionData['prenom']} ${requisitionData['nom']}',
+              'Adiresy : Module 15 Zone Forello Tanjombato Antananarivo',
+              style: _txt(6.4),
             ),
-            pw.Text('Matricule : ${requisitionData['matricule']}'),
-            pw.Text('Fonction : ${requisitionData['Fonction']}'),
-            pw.Text('Département : ${requisitionData['Département']}'),
-            pw.SizedBox(height: 20),
+            pw.SizedBox(height: 3.5),
             pw.Text(
-              'CONTENU DU CONTRAT...',
-              style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+              'Izay soloin’ny Responsable des Ressources Humaines tana',
+              style: _txt(6.4),
             ),
+            pw.SizedBox(height: 3.5),
+            pw.Text('Andaniny', style: _txt(6.4)),
+            pw.SizedBox(height: 2.5),
+
+            // Employee info two columns
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                _infoLine('MPIASA', fullname),
+                _infoLine('Teraka tamin’ny', dob),
+              ],
+            ),
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                _infoLine('Karapanondro laharana', nic),
+                _infoLine('Adiresy', adrs),
+              ],
+            ),
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                _infoLine('Daty nidirana', doe),
+                _infoLine('Poste / Département', '$occupation • $departement'),
+              ],
+            ),
+            pw.SizedBox(height: 4),
+            pw.Text('Ankilany', style: _txt(6.4)),
+            pw.SizedBox(height: 3),
+
+            // Intro
+            pw.Text(
+              'Dia manao izao fifanarahana arak’asa izao izay mifanaraka amin’ny lalàna 2003-044 tamin’ny 28 jolajy 2004 mirakitra ny fahezan-dalàna momba ny asa sy ny fampiharana azy.',
+              style: _txt(6, color: PdfColors.grey700),
+            ),
+            pw.SizedBox(height: 2.5),
+            pw.Text(
+              '(Le présent contrat à durée indéterminée est conclu conformément à la loi 2003-044 du 28 juillet 2004.)',
+              style: _txt(5.4, color: PdfColors.grey500, italic: true),
+            ),
+            pw.SizedBox(height: 5),
+
+            // Articles
+            ..._articles().map(
+              (a) => pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                    a['titleMg'] as String,
+                    style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 6.4,
+                    ),
+                  ),
+                  pw.SizedBox(height: 1.8),
+                  pw.Text(
+                    a['titleFr'] as String,
+                    style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 5.7,
+                      color: PdfColors.grey600,
+                    ),
+                  ),
+                  pw.SizedBox(height: 1.8),
+                  pw.Text(a['bodyMg'] as String, style: _txt(6)),
+                  pw.SizedBox(height: 1.5),
+                  pw.Text(
+                    a['bodyFr'] as String,
+                    style: _txt(5.4, color: PdfColors.grey500, italic: true),
+                  ),
+                  pw.SizedBox(height: 4),
+                ],
+              ),
+            ),
+
+            pw.SizedBox(height: 4),
+            pw.Text('Natao teto Antananarivo ny $doe', style: _txt(6.2)),
+            pw.SizedBox(height: 4),
+            pw.Text(
+              'Ny andaniny sy ny ankilany dia samy nanaiky fa nahazo dika mitovy',
+              style: _txt(6.2),
+            ),
+            pw.SizedBox(height: 8),
+
+            // Signatures
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [_sigBlock('Ny Mpampiasa'), _sigBlock('Ny Mpiasa')],
+            ),
+          ],
+        );
+      },
+    );
+
+    pdf.addPage(page);
+
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+      name: 'Contrat_$empNo',
+    );
+  }
+
+  pw.TextStyle _txt(
+    double size, {
+    PdfColor color = PdfColors.black,
+    bool italic = false,
+  }) {
+    return pw.TextStyle(
+      fontSize: size,
+      color: color,
+      fontStyle: italic ? pw.FontStyle.italic : pw.FontStyle.normal,
+    );
+  }
+
+  pw.Widget _infoLine(String label, String value) {
+    return pw.Expanded(
+      child: pw.RichText(
+        text: pw.TextSpan(
+          children: [
+            pw.TextSpan(
+              text: '$label : ',
+              style: pw.TextStyle(
+                fontWeight: pw.FontWeight.bold,
+                fontSize: 6.4,
+              ),
+            ),
+            pw.TextSpan(text: value, style: pw.TextStyle(fontSize: 6.4)),
           ],
         ),
       ),
     );
+  }
 
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
+  pw.Widget _sigBlock(String label) {
+    return pw.Column(
+      children: [
+        pw.Container(
+          width: 52,
+          height: 16,
+          decoration: const pw.BoxDecoration(
+            border: pw.Border(
+              bottom: pw.BorderSide(color: PdfColors.grey600, width: 0.5),
+            ),
+          ),
+        ),
+        pw.SizedBox(height: 1),
+        pw.Text(
+          label,
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 6),
+        ),
+      ],
     );
+  }
+
+  List<Map<String, String>> _articles() {
+    final prenom = (requisitionData['prenom'] ?? '').toString();
+    final nom = (requisitionData['nom'] ?? '').toString();
+    final fullname = '$prenom $nom'.trim().isEmpty ? 'Employé' : '$prenom $nom';
+    final occupation = (requisitionData['Fonction'] ?? '–').toString();
+    final departement = (requisitionData['Département'] ?? '–').toString();
+    final salaire = (requisitionData['salaire'] ?? '–').toString();
+
+    return [
+      {
+        'titleMg': 'ANDININY 1: MOMBA NY FIFANARAHANA SY NY ANDRANA ASA',
+        'titleFr': 'Article 1 : Période d’essai et durée du travail',
+        'bodyMg':
+            'Manankery mandritra ny fotoana tsy voafetra ity fifanarahana ity miantomboka eo amin’ny fanaovana sonia ny fifanekena arak’asa. Ny andrana asa dia 6 volana. Mandritra ny andran’asa dia azo tapahina ny fifanarahana.',
+        'bodyFr':
+            'Période d’essai de 6 mois. Durant l’essai, le contrat peut être rompu sans préavis ni indemnité.',
+      },
+      {
+        'titleMg': 'ANDININY 2: TOERANA IASANA',
+        'titleFr': 'Article 2 : Lieu de travail',
+        'bodyMg':
+            'Atoa/Rtoa/Rtoakely $fullname dia mpiasa eto amin’ny Orinasa AQUARELLE MADAGASCAR S.A eto Zone Forello Tanjombato, Module 15.'
+                .replaceAll('\$fullname', fullname),
+        'bodyFr':
+            'Le salarié exerce ses fonctions à l’Orinasa AQUARELLE MADAGASCAR S.A, Zone Forello Tanjombato, Module 15.',
+      },
+      {
+        'titleMg': 'ANDININY 3: ANDRAIKITRA',
+        'titleFr': 'Article 3 : Poste et département',
+        'bodyMg':
+            'Ny asanao $fullname dia $occupation ao amin’ny departemanta $departement.'
+                .replaceAll('\$fullname', fullname)
+                .replaceAll('\$occupation', occupation)
+                .replaceAll('\$departement', departement),
+        'bodyFr':
+            'Le salarié occupe le poste de $occupation au département $departement.'
+                .replaceAll('\$occupation', occupation)
+                .replaceAll('\$departement', departement),
+      },
+      {
+        'titleMg': 'ANDININY 4: MARI-KARAMA',
+        'titleFr': 'Article 4 : Rémunération',
+        'bodyMg':
+            'Mandritry ny andran’asa, ny karama nifanarahana dia : $salaire Ariary.'
+                .replaceAll('\$salaire', salaire),
+        'bodyFr': 'Salaire mensuel brut : $salaire Ariary.'.replaceAll(
+          '\$salaire',
+          salaire,
+        ),
+      },
+      {
+        'titleMg': 'ANDININY 5: ORA FIASANA',
+        'titleFr': 'Article 5 : Horaires de travail',
+        'bodyMg':
+            'Alatsinainy (Lundi)-Zoma (vendredi): 07h 00-16 h 00. 16h 00-18h 00 (supplémentaires). Sabotsy (Samedi): heures supplémentaires.',
+        'bodyFr':
+            'Lundi-Vendredi 07h00-16h00, 16h00-18h00 supplémentaires. Samedi: heures supplémentaires.',
+      },
+      {
+        'titleMg': 'ANDININY 6: FANDRARANA',
+        'titleFr': 'Article 6 : Confidentialité',
+        'bodyMg':
+            'Ny mpiasa dia tsy mahazo miasa afa tsy amin’ny mpampiasa iray ary tsy mahazo mamoaka ny tsiambaratelon’ny ORINASA (art. 418 du code penal).',
+        'bodyFr':
+            'Le salarié ne peut travailler pour un autre employeur ni divulguer les secrets de l’Orinasa (art. 418 code pénal).',
+      },
+      {
+        'titleMg': 'ANDININY 7: FAHASALAMANA SY SOSIALY',
+        'titleFr': 'Article 7 : Santé et protection sociale',
+        'bodyMg':
+            'Ny mpiasa dia mahazo fikarakarana sy fanafody ilaina amin’ny fitsaboana ny tenany sy ny fianakaviany. CNaPS selon les fepetra.',
+        'bodyFr':
+            'Protection sociale et soins selon les œuvres sociales. Cotisation CNaPS selon les conditions légales.',
+      },
+      {
+        'titleMg': 'ANDININY 8: FIALAN-TSASATRA',
+        'titleFr': 'Article 8 : Congés payés',
+        'bodyMg':
+            'Ny mpiasa dia manan-jo hiala sasatra mandritra ny 30 andro isan-taona tontosa.',
+        'bodyFr': '30 jours de congé payé par an (2,5 jours par mois).',
+      },
+      {
+        'titleMg': 'ANDININY 9: FITSAHARAN’NY FIFANARAHANA',
+        'titleFr': 'Article 9 : Rupture du contrat',
+        'bodyMg':
+            'Ny fitsaharan’ny fifanarahana amin’ny fotoana tsy voafetra dia tsy maintsy manaraka ny fepetra DECRET 2007 009 du 09 janvier 2007.',
+        'bodyFr':
+            'Rupture du CDI conforme au Décret 2007-009 du 09 janvier 2007.',
+      },
+      {
+        'titleMg': 'ANDININY 10: FITSIPIKA ANATINY',
+        'titleFr': 'Article 10 : Règlement intérieur',
+        'bodyMg':
+            'Izaho mpiasa dia manaiky fa efa namaky sy mahafantatra ny fitsipika anatiny (RI) an’ny orinasa.',
+        'bodyFr':
+            'Le salarié déclare connaître le règlement intérieur de l’Orinasa.',
+      },
+      {
+        'titleMg': 'ANDININY 11: FANEKENA AN-KALALAHANA',
+        'titleFr': 'Article 11 : Exclusivité',
+        'bodyMg':
+            'Izaho mpiasa dia manaiky fa ankalalahana tanteraka no hidirako miasa ato amin’ny orinasa Aquarelle Antananarivo.',
+        'bodyFr':
+            'Le salarié déclare travailler exclusivement à l’Orinasa Aquarelle Antananarivo.',
+      },
+      {
+        'titleMg': 'ANDININY 12: FANITSIANA',
+        'titleFr': 'Article 12 : Litiges',
+        'bodyMg':
+            'Ity fifanarahana ity dia azo ahitsy araka ny fifanarahana misy eo amin’ny roa tonta.',
+        'bodyFr':
+            'Le contrat est soumis aux juridictions compétentes à Antananarivo.',
+      },
+      {
+        'titleMg': 'ANDININY 13: FIFANOLANANA',
+        'titleFr': 'Article 13 : Dispositions diverses',
+        'bodyMg':
+            'Izay fifanolanana tsy hita ao anatin’ity fifanarahana ity, dia ho arovana amin’ny lalana manan-kery eto MADAGASIKARA.',
+        'bodyFr':
+            'Les dispositions non prévues sont réglées d’un commun accord selon la législation malagasy.',
+      },
+    ];
   }
 
   @override
@@ -105,11 +403,7 @@ class ContractDetailsPage extends StatelessWidget {
                   width: 24,
                   height: 24,
                   errorBuilder: (context, error, stackTrace) {
-                    return Icon(
-                      Icons.business,
-                      size: 18,
-                      color: Colors.white,
-                    );
+                    return Icon(Icons.business, size: 18, color: Colors.white);
                   },
                 ),
               ),
@@ -359,9 +653,7 @@ class ContractDetailsPage extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: const Color(0xFFF5F7FA),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: const Color(0xFFE0E0E0),
-                            ),
+                            border: Border.all(color: const Color(0xFFE0E0E0)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
