@@ -1,11 +1,11 @@
 // lib/view/signature_detail_page.dart
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:myapp/model/requisition_model.dart';
-import 'package:myapp/model/responseModel.dart';
+import 'package:e_sign/model/requisition_model.dart';
+import 'package:e_sign/model/responseModel.dart';
 import 'signature_pad_detail_page.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
-import 'package:myapp/config/config.dart';
+import 'package:e_sign/config/config.dart';
 
 class SignatureDetailPage extends StatefulWidget {
   final ResponseModel responseModel;

@@ -1,7 +1,7 @@
 // lib/view/signature_contract_page.dart
 import 'package:flutter/material.dart';
-import 'package:myapp/model/responseModel.dart';
-import 'package:myapp/view/ContractDetailsPage.dart';
+import 'package:e_sign/model/responseModel.dart';
+import 'package:e_sign/view/ContractDetailsPage.dart';
 import 'contractPage.dart';
 import 'DedicatedSignaturePage.dart';
 

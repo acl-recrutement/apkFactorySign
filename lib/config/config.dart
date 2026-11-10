@@ -1,5 +1,5 @@
 class apiConfig {
-  static const String baseUrl = 'https://backgrill.vercel.app';
+  static const String baseUrl = 'https://backrecrgacl-production.up.railway.app';
   static Map<String, String> get defaultHeader => {
     'Content-Type': 'application/json',
   };

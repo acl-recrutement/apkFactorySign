@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/main.dart';
-import 'package:myapp/view/contractPage.dart';
-import 'package:myapp/view/employeePage.dart';
-import 'package:myapp/view/signaturePage.dart';
+import 'package:e_sign/main.dart';
+import 'package:e_sign/view/contractPage.dart';
+import 'package:e_sign/view/employeePage.dart';
+import 'package:e_sign/view/signaturePage.dart';
 import 'dart:math' as math;
 import 'package:socket_io_client/socket_io_client.dart' as IO;
-import 'package:myapp/config/config.dart';
+import 'package:e_sign/config/config.dart';
 import '../model/responseModel.dart';
 
 double _degreesToRadians(double degrees) => degrees * math.pi / 180.0;
@@ -58,14 +58,6 @@ class HomePageState extends State<Homepage> with TickerProviderStateMixin {
       )
       .connect();
 
-  void _viewEmployees() => {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EmployeePage(responseModel: currentUser),
-      ),
-    ),
-  };
   void _signDocument() => {
     Navigator.push(
       context,
@@ -87,7 +79,11 @@ class HomePageState extends State<Homepage> with TickerProviderStateMixin {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        icon: const Icon(Icons.logout_rounded, color: Color(0xFFE53935), size: 32),
+        icon: const Icon(
+          Icons.logout_rounded,
+          color: Color(0xFFE53935),
+          size: 32,
+        ),
         title: const Text('Déconnexion'),
         content: const Text('Êtes-vous sûr de vouloir vous déconnecter ?'),
         actions: [
@@ -242,10 +238,7 @@ class HomePageState extends State<Homepage> with TickerProviderStateMixin {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [
-                  const Color(0xFFF5F7FA),
-                  Colors.white,
-                ],
+                colors: [const Color(0xFFF5F7FA), Colors.white],
               ),
             ),
           ),
@@ -301,24 +294,16 @@ class HomePageState extends State<Homepage> with TickerProviderStateMixin {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 40),
-                  _buildActionCard(
-                    icon: Icons.group_outlined,
-                    title: 'Voir la liste des employés',
-                    onTap: _viewEmployees,
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF42A5F5), Color(0xFF1565C0)],
-                    ),
-                  ),
-                  const SizedBox(height: 18),
+
                   if ({'RH', 'IE', 'FM', 'HOD'}.contains(currentUser.role)) ...[
-                  _buildActionCard(
-                    icon: Icons.edit_document,
-                    title: 'Sign requisition',
-                    onTap: _signDocument,
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF66BB6A), Color(0xFF2E7D32)],
+                    _buildActionCard(
+                      icon: Icons.edit_document,
+                      title: 'Sign requisition',
+                      onTap: _signDocument,
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF66BB6A), Color(0xFF2E7D32)],
+                      ),
                     ),
-                  ),
                     const SizedBox(height: 18),
                   ],
                   if (currentUser.role == 'RHO') ...[
@@ -376,13 +361,6 @@ class HomePageState extends State<Homepage> with TickerProviderStateMixin {
                   },
                 ),
                 if (_isMenuOpen) ...[
-                  _radialButton(
-                    icon: Icons.group,
-                    label: 'Employés',
-                    onPressed: _viewEmployees,
-                    angle: 30,
-                    radius: 100,
-                  ),
                   _radialButton(
                     icon: Icons.edit,
                     label: 'Signer',
@@ -447,10 +425,7 @@ class HomePageState extends State<Homepage> with TickerProviderStateMixin {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(18),
               gradient: LinearGradient(
-                colors: [
-                  Colors.white,
-                  gradient.colors.last.withOpacity(0.04),
-                ],
+                colors: [Colors.white, gradient.colors.last.withOpacity(0.04)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),

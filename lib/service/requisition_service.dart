@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:myapp/config/config.dart';
-import 'package:myapp/model/requisition_model.dart';
+import 'package:e_sign/config/config.dart';
+import 'package:e_sign/model/requisition_model.dart';
 
 class RequisitionService {
   /// Récupère les réquisitions non validées pour un site donné

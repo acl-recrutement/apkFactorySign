@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/main.dart';
-import 'package:myapp/model/responseModel.dart';
+import 'package:e_sign/main.dart';
+import 'package:e_sign/model/responseModel.dart';
 import '../model/employee.dart';
 import '../service/employee_service.dart';
 
 class EmployeePage extends StatefulWidget {
-  const EmployeePage({Key? key, required this.responseModel})
-    : super(key: key);
+  const EmployeePage({Key? key, required this.responseModel}) : super(key: key);
   final ResponseModel? responseModel;
   @override
   _EmployeePageState createState() => _EmployeePageState();
@@ -55,10 +54,6 @@ class _EmployeePageState extends State<EmployeePage> {
       _filterSexe = null;
       _filterSituation = null;
     });
-  }
-
-  void _toggleFilters() {
-    setState(() => _showFilters = !_showFilters);
   }
 
   void _openFilterSheet() {
@@ -431,15 +426,18 @@ class _EmployeePageState extends State<EmployeePage> {
                         if (_filterSexe != null || _filterSituation != null)
                           TextButton.icon(
                             onPressed: _resetFilters,
-                            icon: const Icon(Icons.filter_list_off_rounded,
-                                size: 18),
+                            icon: const Icon(
+                              Icons.filter_list_off_rounded,
+                              size: 18,
+                            ),
                             label: const Text('Réinitialiser'),
                           ),
                         IconButton(
                           onPressed: _openFilterSheet,
                           icon: Icon(
                             Icons.filter_list_rounded,
-                            color: _filterSexe != null || _filterSituation != null
+                            color:
+                                _filterSexe != null || _filterSituation != null
                                 ? const Color(0xFF1565C0)
                                 : const Color(0xFF757575),
                           ),
@@ -455,14 +453,16 @@ class _EmployeePageState extends State<EmployeePage> {
                           if (_filterSexe != null)
                             Chip(
                               label: Text(_filterSexe!),
-                              onDeleted: () => setState(() => _filterSexe = null),
+                              onDeleted: () =>
+                                  setState(() => _filterSexe = null),
                               backgroundColor: const Color(0xFFE3F2FD),
                               deleteIconColor: const Color(0xFF1565C0),
                             ),
                           if (_filterSituation != null)
                             Chip(
                               label: Text(_filterSituation!),
-                              onDeleted: () => setState(() => _filterSituation = null),
+                              onDeleted: () =>
+                                  setState(() => _filterSituation = null),
                               backgroundColor: const Color(0xFFE3F2FD),
                               deleteIconColor: const Color(0xFF1565C0),
                             ),

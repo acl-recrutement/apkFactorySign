@@ -6,9 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
-import 'package:myapp/config/config.dart';
-import 'package:myapp/model/requisition_model.dart';
-import 'package:myapp/model/responseModel.dart';
+import 'package:e_sign/config/config.dart';
+import 'package:e_sign/model/requisition_model.dart';
+import 'package:e_sign/model/responseModel.dart';
 import 'widgets/stroke_point.dart';
 
 class SignaturePadPage extends StatefulWidget {

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/config/config.dart';
-import 'package:myapp/main.dart';
-import 'package:myapp/model/responseModel.dart';
-import 'package:myapp/model/requisition_model.dart';
-import 'package:myapp/service/requisition_service.dart';
-import 'package:myapp/view/HomePage.dart';
+import 'package:e_sign/config/config.dart';
+import 'package:e_sign/main.dart';
+import 'package:e_sign/model/responseModel.dart';
+import 'package:e_sign/model/requisition_model.dart';
+import 'package:e_sign/service/requisition_service.dart';
 
-import 'package:myapp/view/signature_detail_page.dart';
+import 'package:e_sign/view/signature_detail_page.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class SignaturePage extends StatefulWidget {
@@ -199,11 +198,20 @@ class _SignaturePageState extends State<SignaturePage> {
     );
   }
 
-Widget _buildRequisitionList(List<RequisitionModel> requisitions) {
+  Widget _buildRequisitionList(List<RequisitionModel> requisitions) {
     // Filtre par département pour le rôle HOD
     final userDept = widget.responseModel.departement;
-    final filtered = (widget.responseModel.role == 'HOD' && userDept != null && userDept.isNotEmpty)
-        ? requisitions.where((req) => req.departement.trim().toLowerCase() == userDept.trim().toLowerCase()).toList()
+    final filtered =
+        (widget.responseModel.role == 'HOD' &&
+            userDept != null &&
+            userDept.isNotEmpty)
+        ? requisitions
+              .where(
+                (req) =>
+                    req.departement.trim().toLowerCase() ==
+                    userDept.trim().toLowerCase(),
+              )
+              .toList()
         : requisitions;
 
     if (filtered.isEmpty) {
@@ -279,29 +287,29 @@ Widget _buildRequisitionList(List<RequisitionModel> requisitions) {
     );
   }
 
-    Widget _buildRequisitionCard(RequisitionModel req) {
-      final initials = req.displayTitle.isNotEmpty
-          ? req.displayTitle[0].toUpperCase()
-          : '?';
-      return Tooltip(
-        message: req.displayTitle,
-        child: Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: () {
-              hapticFeedback();
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => SignatureDetailPage(
-                    responseModel: widget.responseModel,
-                    requisitionData: req,
-                  ),
+  Widget _buildRequisitionCard(RequisitionModel req) {
+    final initials = req.displayTitle.isNotEmpty
+        ? req.displayTitle[0].toUpperCase()
+        : '?';
+    return Tooltip(
+      message: req.displayTitle,
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            hapticFeedback();
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => SignatureDetailPage(
+                  responseModel: widget.responseModel,
+                  requisitionData: req,
                 ),
-              );
-            },
-            child: Padding(
+              ),
+            );
+          },
+          child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
@@ -385,7 +393,11 @@ Widget _buildRequisitionList(List<RequisitionModel> requisitions) {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.check_circle_rounded, size: 14, color: Color(0xFF2E7D32)),
+            const Icon(
+              Icons.check_circle_rounded,
+              size: 14,
+              color: Color(0xFF2E7D32),
+            ),
             const SizedBox(width: 4),
             Text(
               'Signé',

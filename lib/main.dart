@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:myapp/model/userModel.dart';
-import 'package:myapp/view/HomePage.dart';
+import 'package:e_sign/model/userModel.dart';
+import 'package:e_sign/view/HomePage.dart';
 import 'controller/authController.dart';
 
 void hapticFeedback() {

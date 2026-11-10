@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/main.dart';
+import 'package:e_sign/main.dart';
 import '../service/contract_service.dart';
 import '../model/contract_access_item.dart';
 import '../model/responseModel.dart';
